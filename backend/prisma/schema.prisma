@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BerkasStatus {
+  DIBUAT
+  DI_OPERATOR_DATA_UKUR
+  DI_PETUGAS_UKUR
+  DI_OPERATOR_DATA_PEMETAAN
+  DI_PETUGAS_PEMETAAN
+  PEMILIHAN_KKS
+  DI_KKS
+  REVISI_KKS
+  DI_KEPALA_SEKSI
+  REVISI_KASI
+  SELESAI
+  DITUTUP
+}
+
+model User {
+  id             String          @id @default(uuid()) @db.Uuid
+  email          String          @unique
+  password       String
+  firstName      String
+  lastName       String
+  phoneNumber    String?
+  isActive       Boolean         @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  auditLogs      AuditLog[]
+  berkasApproved Berkas[]        @relation("approvedBy")
+  berkasCreated  Berkas[]        @relation("createdBy")
+  berkasClosed   Berkas[]        @relation("closedByUser")
+  BerkasHistory  BerkasHistory[]
+  roles          UserRole[]
+
+  @@index([email])
+  @@index([isActive])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Role {
+  id          String     @id @default(uuid()) @db.Uuid
+  name        String     @unique
+  description String?
+  permissions Json       @default("[]")
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userRoles   UserRole[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model UserRole {
+  userId     String   @db.Uuid
+  roleId     String   @db.Uuid
+  assignedAt DateTime @default(now())
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model Berkas {
+  id                  String          @id @default(uuid()) @db.Uuid
+  nomor               String
+  status              BerkasStatus    @default(DIBUAT)
+  deskripsi           String?
+  isClosed            Boolean         @default(false)
+  closedAt            DateTime?
+  closedById          String?         @db.Uuid
+  createdById         String          @db.Uuid
+  approvedById        String?         @db.Uuid
+  rejectedReason      String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  kegiatan            String?
+  tanggalBerkas       DateTime?
+  tahunBerkas         Int?
+  namaPemohon         String?
+  kecamatan           String?
+  desa                String?
+  namaProsedur        String?
+  luasPendaftaran     BigInt?
+  di302               String?
+  di305               String?
+  kks                 String?
+  // New fields for KKS workflow
+  petugasUkurId       String?         @db.Uuid
+  puLapangId          String?         @db.Uuid
+  petugasPemetaanId   String?         @db.Uuid
+  petugasKKSId        String?         @db.Uuid
+  noSTP               String?
+  tglSTP              DateTime?
+  noSHATNIBEL         String?
+  luasHasilUkur       Int?
+  nib                 String?
+  nibel               String?
+  jumlahBidang        Int?
+  noSU                String?
+  // Workflow tracking fields
+  revisionCount       Int             @default(0)
+  lastRevisionReason  String?
+  lastRevisionFrom    String?
+  approvedBy          User?           @relation("approvedBy", fields: [approvedById], references: [id])
+  createdBy           User            @relation("createdBy", fields: [createdById], references: [id])
+  petugasUkur         Petugas?        @relation("petugasUkur", fields: [petugasUkurId], references: [id])
+  puLapang            Petugas?        @relation("puLapang", fields: [puLapangId], references: [id])
+  petugasPemetaan     Petugas?        @relation("petugasPemetaan", fields: [petugasPemetaanId], references: [id])
+  petugasKKS          Petugas?        @relation("petugasKKS", fields: [petugasKKSId], references: [id])
+  closedBy            User?           @relation("closedByUser", fields: [closedById], references: [id])
+  history             BerkasHistory[]
+
+  @@unique([nomor, isClosed])
+  @@index([status])
+  @@index([isClosed])
+  @@index([createdById])
+  @@index([createdAt(sort: Desc)])
+  @@index([nomor])
+  @@index([desa])
+  @@index([kecamatan])
+  @@index([petugasUkurId])
+  @@index([puLapangId])
+  @@index([petugasPemetaanId])
+  @@index([petugasKKSId])
+  // Composite indexes for most common query patterns
+  @@index([isClosed, status, createdAt(sort: Desc)])
+  @@index([isClosed, createdAt(sort: Desc)])
+}
+
+model BerkasHistory {
+  id          String   @id @default(uuid()) @db.Uuid
+  berkasId    String   @db.Uuid
+  oldStatus   String?
+  newStatus   String?
+  oldAssignee String?  @db.Uuid
+  newAssignee String?  @db.Uuid
+  changedById String   @db.Uuid
+  reason      String?
+  changedAt   DateTime @default(now())
+  berkas      Berkas   @relation(fields: [berkasId], references: [id], onDelete: Cascade)
+  User        User     @relation(fields: [changedById], references: [id])
+
+  @@index([berkasId])
+  @@index([changedAt(sort: Desc)])
+  @@index([changedById])
+}
+
+model Petugas {
+  id                  String   @id @default(uuid()) @db.Uuid
+  nama                String
+  nip                 String   @unique
+  jabatan             String?
+  departemen          String?
+  phoneNumber         String?
+  email               String?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  berkasPetugasUkur   Berkas[] @relation("petugasUkur")
+  berkasPuLapang      Berkas[] @relation("puLapang")
+  berkasPetugasPemetaan Berkas[] @relation("petugasPemetaan")
+  berkasKKS           Berkas[] @relation("petugasKKS")
+
+  @@index([nip])
+  @@index([isActive])
+}
+
+model BackupLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  filename      String
+  filePath      String
+  fileSizeBytes BigInt   @default(0)
+  totalBerkas   Int      @default(0)
+  status        String   // SUCCESS | FAILED
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([status])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  action      String
+  entity      String
+  entityId    String?  @db.Uuid
+  oldValues   Json?
+  newValues   Json?
+  description String?
+  ipAddress   String?
+  userAgent   String?
+  statusCode  Int?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt(sort: Desc)])
+  @@index([entityId])
+  // Composite index for archiving queries (filter by date range on specific entity)
+  @@index([entity, createdAt(sort: Desc)])
+}

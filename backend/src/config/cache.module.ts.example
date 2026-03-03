@@ -1,0 +1,80 @@
+/**
+ * ========================================
+ * REDIS CACHE MODULE - OPTIONAL
+ * ========================================
+ * 
+ * This file is disabled by default (.example extension)
+ * 
+ * TO ENABLE:
+ * 1. Install dependencies:
+ *    npm install @nestjs/cache-manager cache-manager cache-manager-redis-yet
+ * 
+ * 2. Install & start Redis server:
+ *    - Docker: docker run -d -p 6379:6379 redis:7-alpine
+ *    - Windows: Download from https://github.com/microsoftarchive/redis/releases
+ *    - Linux: sudo apt-get install redis-server
+ * 
+ * 3. Add to .env:
+ *    REDIS_HOST=localhost
+ *    REDIS_PORT=6379
+ *    REDIS_TTL=300
+ * 
+ * 4. Rename this file: cache.module.ts.example → cache.module.ts
+ * 
+ * 5. Import in app.module.ts:
+ *    import { CacheConfigModule } from './config/cache.module';
+ *    imports: [..., CacheConfigModule]
+ * 
+ * ========================================
+ */
+
+import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { redisStore } from 'cache-manager-redis-yet';
+
+/**
+ * Usage in services:
+ *
+ * import { CACHE_MANAGER } from '@nestjs/cache-manager';
+ * import { Inject } from '@nestjs/common';
+ * import { Cache } from 'cache-manager';
+ *
+ * constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+ *
+ * // Get from cache
+ * const value = await this.cacheManager.get('key');
+ *
+ * // Set to cache (TTL in milliseconds)
+ * await this.cacheManager.set('key', value, 300000); // 5 minutes
+ *
+ * // Delete from cache
+ * await this.cacheManager.del('key');
+ */
+
+@Module({
+  imports: [
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const redisHost = configService.get('REDIS_HOST', 'localhost');
+        const redisPort = configService.get('REDIS_PORT', 6379);
+        const redisTTL = configService.get('REDIS_TTL', 300000); // 5 minutes default (in milliseconds)
+
+        return {
+          store: await redisStore({
+            socket: {
+              host: redisHost,
+              port: redisPort,
+            },
+          }),
+          ttl: redisTTL,
+          max: 1000, // Maximum number of items in cache
+        };
+      },
+    }),
+  ],
+  exports: [CacheModule],
+})
+export class CacheConfigModule {}
