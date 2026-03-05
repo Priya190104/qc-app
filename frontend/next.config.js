@@ -12,7 +12,21 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+    NEXT_PUBLIC_API_URL:
+      process.env.NEXT_PUBLIC_API_URL || 'https://aplikasi-monitoring-bpnspcilacap.com/api',
+  },
+  // Allow cross-origin requests from production domain
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+        ],
+      },
+    ];
   },
   // Enable compression for all responses
   compress: true,
