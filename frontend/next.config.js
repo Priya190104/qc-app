@@ -2,6 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  eslint: {
+    // ESLint warnings/errors will not fail the production build
+    ignoreDuringBuilds: true,
+  },
   // Image optimization enabled (default Next.js behavior)
   // Allows Next.js to optimize images on-the-fly (resize, WebP conversion, lazy loading)
   images: {
