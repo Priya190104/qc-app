@@ -38,9 +38,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // API prefix
-  app.setGlobalPrefix('api');
-
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('SISTEM QC BERKAS API')
