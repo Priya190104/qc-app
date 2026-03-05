@@ -15,6 +15,10 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --only=production
 COPY --from=builder /build/dist ./dist
+# Copy generated Prisma client from builder (prisma generate was run there)
+COPY --from=builder /build/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /build/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /build/prisma ./prisma
 RUN mkdir -p uploads
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

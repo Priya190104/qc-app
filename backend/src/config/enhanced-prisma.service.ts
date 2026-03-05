@@ -21,7 +21,7 @@ export class EnhancedPrismaService extends PrismaService {
     await this.$connect();
 
     // Log slow queries (> 1 second)
-    this.$use(async (params, next) => {
+    this.$use(async (params: any, next: (params: any) => Promise<any>) => {
       const before = Date.now();
       const result = await next(params);
       const after = Date.now();
