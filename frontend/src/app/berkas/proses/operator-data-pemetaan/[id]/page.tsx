@@ -505,7 +505,7 @@ export default function UpdateBerkasDataPemetaanPage() {
                           <h4 className="text-sm font-semibold text-purple-800 mb-2">
                             Bidang {idx + 1}
                           </h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                             <div>
                               <h3 className="text-xs font-medium text-gray-500">Luas Hasil Ukur</h3>
                               <p className="mt-1 text-sm text-gray-900">

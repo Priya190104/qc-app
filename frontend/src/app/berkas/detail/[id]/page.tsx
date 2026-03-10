@@ -32,6 +32,12 @@ interface Berkas {
   nibel?: string;
   jumlahBidang?: number;
   noSU?: string;
+  bidangItems?: Array<{
+    luasHasilUkur?: number;
+    nib?: string;
+    nibel?: string;
+    noSU?: string;
+  }>;
   deskripsi?: string;
   petugasUkur?: {
     nama: string;
@@ -304,12 +310,15 @@ export default function BerkasDetailPage() {
               )}
 
               {/* Data Pemetaan */}
-              {(berkas.petugasPemetaan || berkas.luasHasilUkur || berkas.nib) && (
+              {(berkas.petugasPemetaan ||
+                berkas.luasHasilUkur ||
+                berkas.nib ||
+                berkas.jumlahBidang) && (
                 <>
                   <div className="border-t border-gray-200 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Pemetaan</h3>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Petugas Pemetaan</h4>
                       <p className="mt-1 text-sm text-gray-900">
@@ -319,30 +328,85 @@ export default function BerkasDetailPage() {
                       </p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Luas Hasil Ukur</h4>
-                      <p className="mt-1 text-sm text-gray-900">
-                        {berkas.luasHasilUkur
-                          ? `${berkas.luasHasilUkur.toLocaleString('id-ID')} m²`
-                          : '-'}
+                      <h4 className="text-sm font-medium text-gray-500">Jumlah Bidang</h4>
+                      <p className="mt-1 text-sm font-semibold text-purple-700">
+                        {berkas.jumlahBidang || '-'}
                       </p>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">NIB</h4>
-                      <p className="mt-1 text-sm text-gray-900">{berkas.nib || '-'}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">NIBEL</h4>
-                      <p className="mt-1 text-sm text-gray-900">{berkas.nibel || '-'}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">Jumlah Bidang</h4>
-                      <p className="mt-1 text-sm text-gray-900">{berkas.jumlahBidang || '-'}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">No. SU</h4>
-                      <p className="mt-1 text-sm text-gray-900">{berkas.noSU || '-'}</p>
-                    </div>
                   </div>
+                  {berkas.bidangItems && berkas.bidangItems.length > 0 ? (
+                    <div className="space-y-3">
+                      {berkas.bidangItems.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="border border-purple-200 rounded-lg p-4 bg-purple-50"
+                        >
+                          <h4 className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-3">
+                            Bidang {idx + 1}
+                          </h4>
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                            <div>
+                              <p className="text-xs font-medium text-gray-500">Luas Hasil Ukur</p>
+                              <p className="mt-0.5 text-sm font-medium text-gray-900">
+                                {item.luasHasilUkur
+                                  ? `${item.luasHasilUkur.toLocaleString('id-ID')} m²`
+                                  : '-'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-500">NIB</p>
+                              <p className="mt-0.5 text-sm font-medium text-gray-900">
+                                {item.nib || '-'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-500">NIBEL</p>
+                              <p className="mt-0.5 text-sm font-medium text-gray-900">
+                                {item.nibel || '-'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-500">No. SU</p>
+                              <p className="mt-0.5 text-sm font-medium text-gray-900">
+                                {item.noSU || '-'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                        <div>
+                          <p className="text-xs font-medium text-gray-500">Luas Hasil Ukur</p>
+                          <p className="mt-0.5 text-sm font-medium text-gray-900">
+                            {berkas.luasHasilUkur
+                              ? `${berkas.luasHasilUkur.toLocaleString('id-ID')} m²`
+                              : '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-gray-500">NIB</p>
+                          <p className="mt-0.5 text-sm font-medium text-gray-900">
+                            {berkas.nib || '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-gray-500">NIBEL</p>
+                          <p className="mt-0.5 text-sm font-medium text-gray-900">
+                            {berkas.nibel || '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-gray-500">No. SU</p>
+                          <p className="mt-0.5 text-sm font-medium text-gray-900">
+                            {berkas.noSU || '-'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
