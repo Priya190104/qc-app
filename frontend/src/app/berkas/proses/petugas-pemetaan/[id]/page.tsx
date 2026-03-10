@@ -166,9 +166,7 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
       if (count > 0) {
         setBidangItems((prev) => {
           const next = Array.from({ length: count }, (_, i) =>
-            i < prev.length
-              ? prev[i]
-              : { luasHasilUkur: '', nib: '', nibel: '', noSU: '' }
+            i < prev.length ? prev[i] : { luasHasilUkur: '', nib: '', nibel: '', noSU: '' }
           );
           return next;
         });
@@ -214,7 +212,6 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
         noSU: parsedItems[0]?.noSU,
         bidangItems: parsedItems,
         notes: formData.notes || undefined,
-      };
       };
 
       // Use workflow API untuk validasi pemetaan
@@ -400,7 +397,8 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
                 />
                 {formData.jumlahBidang && parseInt(formData.jumlahBidang) > 0 && (
                   <p className="mt-1 text-xs text-purple-600">
-                    ↳ {parseInt(formData.jumlahBidang)} bidang — isi data masing-masing bidang di bawah
+                    ↳ {parseInt(formData.jumlahBidang)} bidang — isi data masing-masing bidang di
+                    bawah
                   </p>
                 )}
               </div>
@@ -438,9 +436,7 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
                           <input
                             type="text"
                             value={item.nib}
-                            onChange={(e) =>
-                              handleBidangItemChange(index, 'nib', e.target.value)
-                            }
+                            onChange={(e) => handleBidangItemChange(index, 'nib', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
                             placeholder="Masukkan NIB"
                           />
@@ -454,9 +450,7 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
                           <input
                             type="text"
                             value={item.nibel}
-                            onChange={(e) =>
-                              handleBidangItemChange(index, 'nibel', e.target.value)
-                            }
+                            onChange={(e) => handleBidangItemChange(index, 'nibel', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
                             placeholder="Masukkan NIBEL"
                           />
@@ -470,9 +464,7 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
                           <input
                             type="text"
                             value={item.noSU}
-                            onChange={(e) =>
-                              handleBidangItemChange(index, 'noSU', e.target.value)
-                            }
+                            onChange={(e) => handleBidangItemChange(index, 'noSU', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
                             placeholder="Masukkan No. SU"
                           />
