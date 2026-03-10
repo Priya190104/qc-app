@@ -1,4 +1,5 @@
-import { IsString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsUUID, IsArray, ValidateNested, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 import { BerkasStatus } from '@prisma/client';
 
 /**
@@ -112,6 +113,27 @@ export class UpdateDataPemetaanDto {
 }
 
 /**
+ * DTO for a single bidang (plot) data
+ */
+export class BidangItemDto {
+  @IsOptional()
+  @IsNumber()
+  luasHasilUkur?: number;
+
+  @IsOptional()
+  @IsString()
+  nib?: string;
+
+  @IsOptional()
+  @IsString()
+  nibel?: string;
+
+  @IsOptional()
+  @IsString()
+  noSU?: string;
+}
+
+/**
  * DTO for validating berkas by Petugas Pemetaan
  */
 export class ValidatePemetaanDto {
@@ -132,6 +154,12 @@ export class ValidatePemetaanDto {
   @IsOptional()
   @IsString()
   noSU?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BidangItemDto)
+  bidangItems?: BidangItemDto[];
 
   @IsOptional()
   @IsString()

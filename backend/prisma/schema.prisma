@@ -108,6 +108,7 @@ model Berkas {
   nibel               String?
   jumlahBidang        Int?
   noSU                String?
+  bidangItems         Json?
   // Workflow tracking fields
   revisionCount       Int             @default(0)
   lastRevisionReason  String?

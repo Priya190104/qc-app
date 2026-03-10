@@ -51,7 +51,15 @@ interface Berkas {
   nibel?: string;
   jumlahBidang?: number;
   noSU?: string;
+  bidangItems?: BidangItem[];
   history?: BerkasHistory[];
+}
+
+interface BidangItem {
+  luasHasilUkur?: number;
+  nib?: string;
+  nibel?: string;
+  noSU?: string;
 }
 
 interface BerkasHistory {
@@ -86,12 +94,12 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
   // Form state - Petugas Pemetaan mengisi data hasil pemetaan
   const [formData, setFormData] = useState({
     jumlahBidang: '',
-    luasHasilUkur: '',
-    nib: '',
-    nibel: '',
-    noSU: '',
     notes: '',
   });
+
+  const [bidangItems, setBidangItems] = useState<
+    { luasHasilUkur: string; nib: string; nibel: string; noSU: string }[]
+  >([{ luasHasilUkur: '', nib: '', nibel: '', noSU: '' }]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,15 +113,37 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
 
         if (berkasData) {
           setBerkas(berkasData);
+          const count = berkasData.jumlahBidang || 1;
           // Initialize form with existing data
           setFormData({
             jumlahBidang: berkasData.jumlahBidang?.toString() || '',
-            luasHasilUkur: berkasData.luasHasilUkur?.toString() || '',
-            nib: berkasData.nib || '',
-            nibel: berkasData.nibel || '',
-            noSU: berkasData.noSU || '',
             notes: '',
           });
+          // Build bidangItems array from saved data
+          if (berkasData.bidangItems && berkasData.bidangItems.length > 0) {
+            setBidangItems(
+              berkasData.bidangItems.map((item) => ({
+                luasHasilUkur: item.luasHasilUkur?.toString() ?? '',
+                nib: item.nib ?? '',
+                nibel: item.nibel ?? '',
+                noSU: item.noSU ?? '',
+              }))
+            );
+          } else {
+            // Fallback: single row from legacy single-value fields
+            setBidangItems(
+              Array.from({ length: count }, (_, i) =>
+                i === 0
+                  ? {
+                      luasHasilUkur: berkasData.luasHasilUkur?.toString() ?? '',
+                      nib: berkasData.nib ?? '',
+                      nibel: berkasData.nibel ?? '',
+                      noSU: berkasData.noSU ?? '',
+                    }
+                  : { luasHasilUkur: '', nib: '', nibel: '', noSU: '' }
+              )
+            );
+          }
         }
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
@@ -130,7 +160,34 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'jumlahBidang') {
+      const count = parseInt(value) || 0;
+      setFormData((prev) => ({ ...prev, jumlahBidang: value }));
+      if (count > 0) {
+        setBidangItems((prev) => {
+          const next = Array.from({ length: count }, (_, i) =>
+            i < prev.length
+              ? prev[i]
+              : { luasHasilUkur: '', nib: '', nibel: '', noSU: '' }
+          );
+          return next;
+        });
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleBidangItemChange = (
+    index: number,
+    field: 'luasHasilUkur' | 'nib' | 'nibel' | 'noSU',
+    value: string
+  ) => {
+    setBidangItems((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,13 +198,23 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
     setSuccess(null);
 
     try {
+      const parsedItems = bidangItems.map((item) => ({
+        luasHasilUkur: item.luasHasilUkur ? parseFloat(item.luasHasilUkur) : undefined,
+        nib: item.nib || undefined,
+        nibel: item.nibel || undefined,
+        noSU: item.noSU || undefined,
+      }));
+
       const updateData: any = {
         jumlahBidang: formData.jumlahBidang ? parseInt(formData.jumlahBidang) : undefined,
-        luasHasilUkur: formData.luasHasilUkur ? parseFloat(formData.luasHasilUkur) : undefined,
-        nib: formData.nib || undefined,
-        nibel: formData.nibel || undefined,
-        noSU: formData.noSU || undefined,
+        // First bidang values are stored in legacy fields for backward compatibility
+        luasHasilUkur: parsedItems[0]?.luasHasilUkur,
+        nib: parsedItems[0]?.nib,
+        nibel: parsedItems[0]?.nibel,
+        noSU: parsedItems[0]?.noSU,
+        bidangItems: parsedItems,
         notes: formData.notes || undefined,
+      };
       };
 
       // Use workflow API untuk validasi pemetaan
@@ -307,12 +374,13 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-purple-900 mb-2">🗺️ Data Hasil Pemetaan</h3>
               <p className="text-sm text-purple-700">
-                Isi data hasil pemetaan berikut, lalu simpan untuk melanjutkan berkas ke tahap Pemilihan KKS.
+                Isi data hasil pemetaan berikut, lalu simpan untuk melanjutkan berkas ke tahap
+                Pemilihan KKS.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Jumlah Bidang - 1 grid (full width) */}
+              {/* Jumlah Bidang - full width */}
               <div className="md:col-span-2">
                 <label
                   htmlFor="jumlahBidang"
@@ -324,79 +392,96 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
                   type="number"
                   id="jumlahBidang"
                   name="jumlahBidang"
+                  min="1"
                   value={formData.jumlahBidang}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full md:w-48 px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                   placeholder="0"
                 />
+                {formData.jumlahBidang && parseInt(formData.jumlahBidang) > 0 && (
+                  <p className="mt-1 text-xs text-purple-600">
+                    ↳ {parseInt(formData.jumlahBidang)} bidang — isi data masing-masing bidang di bawah
+                  </p>
+                )}
               </div>
 
-              {/* Luas Hasil Ukur */}
-              <div>
-                <label
-                  htmlFor="luasHasilUkur"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Luas Hasil Ukur (m²)
-                </label>
-                <input
-                  type="number"
-                  id="luasHasilUkur"
-                  name="luasHasilUkur"
-                  value={formData.luasHasilUkur}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="0"
-                />
-              </div>
+              {/* Dynamic rows per bidang */}
+              {bidangItems.map((item, index) => (
+                <React.Fragment key={index}>
+                  <div className="md:col-span-2">
+                    <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                      <h4 className="text-sm font-semibold text-purple-800 mb-3">
+                        Bidang {index + 1}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Luas Hasil Ukur */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Luas Hasil Ukur (m²)
+                          </label>
+                          <input
+                            type="number"
+                            value={item.luasHasilUkur}
+                            onChange={(e) =>
+                              handleBidangItemChange(index, 'luasHasilUkur', e.target.value)
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="0"
+                          />
+                        </div>
 
-              {/* NIB */}
-              <div>
-                <label htmlFor="nib" className="block text-sm font-medium text-gray-700 mb-2">
-                  NIB
-                </label>
-                <input
-                  type="text"
-                  id="nib"
-                  name="nib"
-                  value={formData.nib}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="Masukkan NIB"
-                />
-              </div>
+                        {/* NIB */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            NIB
+                          </label>
+                          <input
+                            type="text"
+                            value={item.nib}
+                            onChange={(e) =>
+                              handleBidangItemChange(index, 'nib', e.target.value)
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="Masukkan NIB"
+                          />
+                        </div>
 
-              {/* NIBEL */}
-              <div>
-                <label htmlFor="nibel" className="block text-sm font-medium text-gray-700 mb-2">
-                  NIBEL
-                </label>
-                <input
-                  type="text"
-                  id="nibel"
-                  name="nibel"
-                  value={formData.nibel}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="Masukkan NIBEL"
-                />
-              </div>
+                        {/* NIBEL */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            NIBEL
+                          </label>
+                          <input
+                            type="text"
+                            value={item.nibel}
+                            onChange={(e) =>
+                              handleBidangItemChange(index, 'nibel', e.target.value)
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="Masukkan NIBEL"
+                          />
+                        </div>
 
-              {/* No. SU */}
-              <div>
-                <label htmlFor="noSU" className="block text-sm font-medium text-gray-700 mb-2">
-                  No. SU
-                </label>
-                <input
-                  type="text"
-                  id="noSU"
-                  name="noSU"
-                  value={formData.noSU}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="Masukkan No. SU"
-                />
-              </div>
+                        {/* No. SU */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            No. SU
+                          </label>
+                          <input
+                            type="text"
+                            value={item.noSU}
+                            onChange={(e) =>
+                              handleBidangItemChange(index, 'noSU', e.target.value)
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="Masukkan No. SU"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              ))}
 
               {/* Catatan Validasi */}
               <div className="md:col-span-2">
@@ -555,30 +640,72 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Luas Hasil Ukur</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {berkas.luasHasilUkur
-                        ? `${berkas.luasHasilUkur.toLocaleString('id-ID')} m²`
-                        : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">NIB</h3>
-                    <p className="mt-1 text-sm text-gray-900">{berkas.nib || '-'}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">NIBEL</h3>
-                    <p className="mt-1 text-sm text-gray-900">{berkas.nibel || '-'}</p>
-                  </div>
-                  <div>
                     <h3 className="text-sm font-medium text-gray-500">Jumlah Bidang</h3>
                     <p className="mt-1 text-sm text-gray-900">{berkas.jumlahBidang || '-'}</p>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">No. SU</h3>
-                    <p className="mt-1 text-sm text-gray-900">{berkas.noSU || '-'}</p>
-                  </div>
                 </div>
+
+                {/* Per-bidang detail */}
+                {berkas.bidangItems && berkas.bidangItems.length > 0 ? (
+                  <div className="mt-4 space-y-3">
+                    {berkas.bidangItems.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="border border-purple-200 rounded-lg p-4 bg-purple-50"
+                      >
+                        <h4 className="text-sm font-semibold text-purple-800 mb-2">
+                          Bidang {idx + 1}
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div>
+                            <h3 className="text-xs font-medium text-gray-500">Luas Hasil Ukur</h3>
+                            <p className="mt-1 text-sm text-gray-900">
+                              {item.luasHasilUkur
+                                ? `${item.luasHasilUkur.toLocaleString('id-ID')} m²`
+                                : '-'}
+                            </p>
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-medium text-gray-500">NIB</h3>
+                            <p className="mt-1 text-sm text-gray-900">{item.nib || '-'}</p>
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-medium text-gray-500">NIBEL</h3>
+                            <p className="mt-1 text-sm text-gray-900">{item.nibel || '-'}</p>
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-medium text-gray-500">No. SU</h3>
+                            <p className="mt-1 text-sm text-gray-900">{item.noSU || '-'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Fallback for legacy single-value display */
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Luas Hasil Ukur</h3>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {berkas.luasHasilUkur
+                          ? `${berkas.luasHasilUkur.toLocaleString('id-ID')} m²`
+                          : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">NIB</h3>
+                      <p className="mt-1 text-sm text-gray-900">{berkas.nib || '-'}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">NIBEL</h3>
+                      <p className="mt-1 text-sm text-gray-900">{berkas.nibel || '-'}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">No. SU</h3>
+                      <p className="mt-1 text-sm text-gray-900">{berkas.noSU || '-'}</p>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

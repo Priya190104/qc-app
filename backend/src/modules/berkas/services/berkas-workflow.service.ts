@@ -299,16 +299,20 @@ export class BerkasWorkflowService {
     }
 
     // Update status and pemetaan fields
+    const updatePayload: any = {
+      status: newStatus,
+      luasHasilUkur: validateDto.luasHasilUkur,
+      nib: validateDto.nib,
+      nibel: validateDto.nibel,
+      jumlahBidang: validateDto.jumlahBidang,
+      noSU: validateDto.noSU,
+    };
+    if (validateDto.bidangItems !== undefined) {
+      updatePayload.bidangItems = validateDto.bidangItems;
+    }
     const updatedBerkas = await this.prisma.berkas.update({
       where: { id: berkasId },
-      data: {
-        status: newStatus,
-        luasHasilUkur: validateDto.luasHasilUkur,
-        nib: validateDto.nib,
-        nibel: validateDto.nibel,
-        jumlahBidang: validateDto.jumlahBidang,
-        noSU: validateDto.noSU,
-      },
+      data: updatePayload,
     });
 
     // Create history
