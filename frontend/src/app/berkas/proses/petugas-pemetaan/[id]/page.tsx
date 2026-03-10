@@ -83,9 +83,13 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Form state - Petugas Pemetaan melakukan validasi pemetaan
+  // Form state - Petugas Pemetaan mengisi data hasil pemetaan
   const [formData, setFormData] = useState({
-    sudahDilakukanPemetaan: false,
+    jumlahBidang: '',
+    luasHasilUkur: '',
+    nib: '',
+    nibel: '',
+    noSU: '',
     notes: '',
   });
 
@@ -101,9 +105,13 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
 
         if (berkasData) {
           setBerkas(berkasData);
-          // Initialize form
+          // Initialize form with existing data
           setFormData({
-            sudahDilakukanPemetaan: false,
+            jumlahBidang: berkasData.jumlahBidang?.toString() || '',
+            luasHasilUkur: berkasData.luasHasilUkur?.toString() || '',
+            nib: berkasData.nib || '',
+            nibel: berkasData.nibel || '',
+            noSU: berkasData.noSU || '',
             notes: '',
           });
         }
@@ -121,24 +129,12 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
   }, [id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validation: must confirm pemetaan has been done
-    if (!formData.sudahDilakukanPemetaan) {
-      setError('Anda harus mengkonfirmasi bahwa pemetaan telah dilakukan');
-      return;
-    }
 
     setSaving(true);
     setError(null);
@@ -146,6 +142,11 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
 
     try {
       const updateData: any = {
+        jumlahBidang: formData.jumlahBidang ? parseInt(formData.jumlahBidang) : undefined,
+        luasHasilUkur: formData.luasHasilUkur ? parseFloat(formData.luasHasilUkur) : undefined,
+        nib: formData.nib || undefined,
+        nibel: formData.nibel || undefined,
+        noSU: formData.noSU || undefined,
         notes: formData.notes || undefined,
       };
 
@@ -304,37 +305,101 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
         {activeTab === 'validasi' && (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-purple-900 mb-2">🗺️ Validasi Pemetaan</h3>
+              <h3 className="text-lg font-semibold text-purple-900 mb-2">🗺️ Data Hasil Pemetaan</h3>
               <p className="text-sm text-purple-700">
-                Konfirmasi bahwa pemetaan telah dilakukan dan berikan catatan jika diperlukan.
+                Isi data hasil pemetaan berikut, lalu simpan untuk melanjutkan berkas ke tahap Pemilihan KKS.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-              {/* Checkbox: Apakah sudah dilakukan pemetaan? */}
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="sudahDilakukanPemetaan"
-                    checked={formData.sudahDilakukanPemetaan}
-                    onChange={handleInputChange}
-                    className="mt-1 w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                  <div>
-                    <span className="block text-base font-semibold text-gray-900">
-                      Apakah sudah dilakukan pemetaan? <span className="text-red-500">*</span>
-                    </span>
-                    <span className="block text-sm text-gray-600 mt-1">
-                      Centang kotak ini untuk mengkonfirmasi bahwa proses pemetaan telah selesai
-                      dilakukan
-                    </span>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Jumlah Bidang - 1 grid (full width) */}
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="jumlahBidang"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Jumlah Bidang
                 </label>
+                <input
+                  type="number"
+                  id="jumlahBidang"
+                  name="jumlahBidang"
+                  value={formData.jumlahBidang}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="0"
+                />
+              </div>
+
+              {/* Luas Hasil Ukur */}
+              <div>
+                <label
+                  htmlFor="luasHasilUkur"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Luas Hasil Ukur (m²)
+                </label>
+                <input
+                  type="number"
+                  id="luasHasilUkur"
+                  name="luasHasilUkur"
+                  value={formData.luasHasilUkur}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="0"
+                />
+              </div>
+
+              {/* NIB */}
+              <div>
+                <label htmlFor="nib" className="block text-sm font-medium text-gray-700 mb-2">
+                  NIB
+                </label>
+                <input
+                  type="text"
+                  id="nib"
+                  name="nib"
+                  value={formData.nib}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Masukkan NIB"
+                />
+              </div>
+
+              {/* NIBEL */}
+              <div>
+                <label htmlFor="nibel" className="block text-sm font-medium text-gray-700 mb-2">
+                  NIBEL
+                </label>
+                <input
+                  type="text"
+                  id="nibel"
+                  name="nibel"
+                  value={formData.nibel}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Masukkan NIBEL"
+                />
+              </div>
+
+              {/* No. SU */}
+              <div>
+                <label htmlFor="noSU" className="block text-sm font-medium text-gray-700 mb-2">
+                  No. SU
+                </label>
+                <input
+                  type="text"
+                  id="noSU"
+                  name="noSU"
+                  value={formData.noSU}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Masukkan No. SU"
+                />
               </div>
 
               {/* Catatan Validasi */}
-              <div>
+              <div className="md:col-span-2">
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
                   Catatan
                 </label>
@@ -361,10 +426,10 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
               </Link>
               <Button
                 type="submit"
-                disabled={saving || !formData.sudahDilakukanPemetaan}
+                disabled={saving}
                 className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400"
               >
-                {saving ? 'Memproses...' : '✓ Validasi & Lanjutkan ke Pemilihan KKS'}
+                {saving ? 'Memproses...' : '✓ Simpan & Lanjutkan ke Pemilihan KKS'}
               </Button>
             </div>
           </form>

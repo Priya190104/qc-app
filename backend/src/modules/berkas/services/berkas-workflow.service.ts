@@ -242,11 +242,6 @@ export class BerkasWorkflowService {
       where: { id: berkasId },
       data: {
         petugasPemetaanId: updateDto.petugasPemetaanId,
-        luasHasilUkur: updateDto.luasHasilUkur,
-        nib: updateDto.nib,
-        nibel: updateDto.nibel,
-        jumlahBidang: updateDto.jumlahBidang,
-        noSU: updateDto.noSU,
       },
     });
 
@@ -303,11 +298,16 @@ export class BerkasWorkflowService {
       reason = validateDto.notes || 'Pemetaan telah divalidasi';
     }
 
-    // Update status
+    // Update status and pemetaan fields
     const updatedBerkas = await this.prisma.berkas.update({
       where: { id: berkasId },
       data: {
         status: newStatus,
+        luasHasilUkur: validateDto.luasHasilUkur,
+        nib: validateDto.nib,
+        nibel: validateDto.nibel,
+        jumlahBidang: validateDto.jumlahBidang,
+        noSU: validateDto.noSU,
       },
     });
 

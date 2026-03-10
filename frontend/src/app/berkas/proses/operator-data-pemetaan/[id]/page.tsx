@@ -88,14 +88,9 @@ export default function UpdateBerkasDataPemetaanPage() {
   const [petugasList, setPetugasList] = useState<Petugas[]>([]);
   const [loadingPetugas, setLoadingPetugas] = useState(false);
 
-  // Form state - Operator Data Pemetaan mengelola field pemetaan dan detail teknis
+  // Form state - Operator Data Pemetaan hanya mengelola penugasan Petugas Pemetaan
   const [formData, setFormData] = useState({
     petugasPemetaanId: '',
-    luasHasilUkur: '',
-    nib: '',
-    nibel: '',
-    jumlahBidang: '',
-    noSU: '',
   });
 
   useEffect(() => {
@@ -113,11 +108,6 @@ export default function UpdateBerkasDataPemetaanPage() {
           // Populate form with existing data
           setFormData({
             petugasPemetaanId: berkasData.petugasPemetaanId || '',
-            luasHasilUkur: berkasData.luasHasilUkur?.toString() || '',
-            nib: berkasData.nib || '',
-            nibel: berkasData.nibel || '',
-            jumlahBidang: berkasData.jumlahBidang?.toString() || '',
-            noSU: berkasData.noSU || '',
           });
         }
       } catch (err: any) {
@@ -162,11 +152,6 @@ export default function UpdateBerkasDataPemetaanPage() {
     try {
       const updateData: any = {
         petugasPemetaanId: formData.petugasPemetaanId || undefined,
-        luasHasilUkur: formData.luasHasilUkur ? parseInt(formData.luasHasilUkur) : undefined,
-        nib: formData.nib || undefined,
-        nibel: formData.nibel || undefined,
-        jumlahBidang: formData.jumlahBidang ? parseInt(formData.jumlahBidang) : undefined,
-        noSU: formData.noSU || undefined,
       };
 
       await apiClient.put(`/berkas/workflow/${id}/operator-pemetaan/update`, updateData);
@@ -276,14 +261,14 @@ export default function UpdateBerkasDataPemetaanPage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-green-800">
                   💡 <strong>Info:</strong> Pada tahap Operator Data Pemetaan, Anda mengelola
-                  penugasan Petugas Pemetaan dan detail teknis hasil pemetaan seperti luas hasil
-                  ukur, NIB, NIBEL, jumlah bidang, dan No. SU.
+                  penugasan Petugas Pemetaan. Pengisian data hasil pemetaan (luas hasil ukur, NIB,
+                  NIBEL, jumlah bidang, dan No. SU) dilakukan oleh Petugas Pemetaan.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 {/* Petugas Pemetaan */}
-                <div className="md:col-span-2">
+                <div>
                   <label
                     htmlFor="petugasPemetaanId"
                     className="block text-sm font-medium text-gray-700 mb-2"
@@ -313,92 +298,6 @@ export default function UpdateBerkasDataPemetaanPage() {
                       ⚠️ Tidak ada petugas pemetaan aktif tersedia
                     </p>
                   )}
-                </div>
-
-                {/* Luas Hasil Ukur */}
-                <div>
-                  <label
-                    htmlFor="luasHasilUkur"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Luas Hasil Ukur (m²)
-                  </label>
-                  <input
-                    type="number"
-                    id="luasHasilUkur"
-                    name="luasHasilUkur"
-                    value={formData.luasHasilUkur}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0"
-                  />
-                </div>
-
-                {/* NIB */}
-                <div>
-                  <label htmlFor="nib" className="block text-sm font-medium text-gray-700 mb-2">
-                    NIB
-                  </label>
-                  <input
-                    type="text"
-                    id="nib"
-                    name="nib"
-                    value={formData.nib}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Masukkan NIB"
-                  />
-                </div>
-
-                {/* NIBEL */}
-                <div>
-                  <label htmlFor="nibel" className="block text-sm font-medium text-gray-700 mb-2">
-                    NIBEL
-                  </label>
-                  <input
-                    type="text"
-                    id="nibel"
-                    name="nibel"
-                    value={formData.nibel}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Masukkan NIBEL"
-                  />
-                </div>
-
-                {/* Jumlah Bidang */}
-                <div>
-                  <label
-                    htmlFor="jumlahBidang"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Jumlah Bidang
-                  </label>
-                  <input
-                    type="number"
-                    id="jumlahBidang"
-                    name="jumlahBidang"
-                    value={formData.jumlahBidang}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0"
-                  />
-                </div>
-
-                {/* No. SU */}
-                <div>
-                  <label htmlFor="noSU" className="block text-sm font-medium text-gray-700 mb-2">
-                    No. SU
-                  </label>
-                  <input
-                    type="text"
-                    id="noSU"
-                    name="noSU"
-                    value={formData.noSU}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Masukkan No. SU"
-                  />
                 </div>
               </div>
 

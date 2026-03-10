@@ -107,6 +107,15 @@ export class UpdateDataPemetaanDto {
   petugasPemetaanId?: string;
 
   @IsOptional()
+  @IsString()
+  notes?: string;
+}
+
+/**
+ * DTO for validating berkas by Petugas Pemetaan
+ */
+export class ValidatePemetaanDto {
+  @IsOptional()
   luasHasilUkur?: number;
 
   @IsOptional()
@@ -124,15 +133,6 @@ export class UpdateDataPemetaanDto {
   @IsString()
   noSU?: string;
 
-  @IsOptional()
-  @IsString()
-  notes?: string;
-}
-
-/**
- * DTO for validating berkas by Petugas Pemetaan
- */
-export class ValidatePemetaanDto {
   @IsOptional()
   @IsString()
   notes?: string;
