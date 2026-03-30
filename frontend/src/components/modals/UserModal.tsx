@@ -84,8 +84,12 @@ export default function UserModal({ isOpen, onClose, onSuccess, editUser, roles 
         lastName: formData.lastName,
         phoneNumber: formData.phoneNumber,
         roleIds: [formData.roleId],
-        isActive: formData.isActive,
       };
+
+      // Only include isActive for PATCH (edit) requests
+      if (editUser) {
+        payload.isActive = formData.isActive;
+      }
 
       if (!editUser || formData.password) {
         payload.password = formData.password;
