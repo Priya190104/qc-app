@@ -260,13 +260,6 @@ export const LoginForm: React.FC = () => {
           Daftar di sini
         </Link>
       </div>
-
-      {/* Divider */}
-      <div className="my-6 flex items-center gap-3">
-        <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-400 font-medium">Demo Akun</span>
-        <div className="flex-1 h-px bg-gray-200" />
-      </div>
     </div>
   );
 };
