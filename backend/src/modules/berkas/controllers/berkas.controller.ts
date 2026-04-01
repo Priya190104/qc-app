@@ -15,6 +15,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger'
 import { BerkasService } from '../services/berkas.service';
 import { CreateBerkasDto, UpdateBerkasDto } from '../dto/berkas.dto';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { AdminGuard } from '@/common/guards/admin.guard';
 
 @ApiTags('Berkas')
 @Controller('berkas')
@@ -113,9 +114,9 @@ export class BerkasController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update berkas by id' })
+  @ApiOperation({ summary: 'Update berkas by id (Admin only)' })
   async update(
     @Param('id') id: string,
     @Body() updateBerkasDto: UpdateBerkasDto,

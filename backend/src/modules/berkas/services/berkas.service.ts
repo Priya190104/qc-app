@@ -322,64 +322,79 @@ export class BerkasService {
       throw new NotFoundException('Berkas tidak ditemukan');
     }
 
-    const updatedBerkas = await this.prisma.berkas.update({
-      where: { id },
-      data: {
-        kegiatan: updateBerkasDto.kegiatan,
-        tanggalBerkas: updateBerkasDto.tanggalBerkas
-          ? new Date(updateBerkasDto.tanggalBerkas)
-          : undefined,
-        tahunBerkas: updateBerkasDto.tahunBerkas,
-        namaPemohon: updateBerkasDto.namaPemohon,
-        kecamatan: updateBerkasDto.kecamatan,
-        desa: updateBerkasDto.desa,
-        namaProsedur: updateBerkasDto.namaProsedur,
-        luasPendaftaran: updateBerkasDto.luasPendaftaran
-          ? BigInt(updateBerkasDto.luasPendaftaran)
-          : undefined,
-        di302: updateBerkasDto.di302,
-        di305: updateBerkasDto.di305,
-        kks: updateBerkasDto.kks,
-        status: updateBerkasDto.status ? (updateBerkasDto.status as BerkasStatus) : undefined,
-        deskripsi: updateBerkasDto.deskripsi,
-        // KKS Workflow Fields
-        petugasUkurId: updateBerkasDto.petugasUkurId,
-        puLapangId: updateBerkasDto.puLapangId,
-        noSTP: updateBerkasDto.noSTP,
-        tglSTP: updateBerkasDto.tglSTP ? new Date(updateBerkasDto.tglSTP) : undefined,
-        noSHATNIBEL: updateBerkasDto.noSHATNIBEL,
-        luasHasilUkur: updateBerkasDto.luasHasilUkur,
-        nib: updateBerkasDto.nib,
-        nibel: updateBerkasDto.nibel,
-        jumlahBidang: updateBerkasDto.jumlahBidang,
-        noSU: updateBerkasDto.noSU,
-      },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+    const updatedBerkas = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.berkas.update({
+        where: { id },
+        data: {
+          kegiatan: updateBerkasDto.kegiatan,
+          tanggalBerkas: updateBerkasDto.tanggalBerkas
+            ? new Date(updateBerkasDto.tanggalBerkas)
+            : undefined,
+          tahunBerkas: updateBerkasDto.tahunBerkas,
+          namaPemohon: updateBerkasDto.namaPemohon,
+          kecamatan: updateBerkasDto.kecamatan,
+          desa: updateBerkasDto.desa,
+          namaProsedur: updateBerkasDto.namaProsedur,
+          luasPendaftaran: updateBerkasDto.luasPendaftaran
+            ? BigInt(updateBerkasDto.luasPendaftaran)
+            : undefined,
+          di302: updateBerkasDto.di302,
+          di305: updateBerkasDto.di305,
+          kks: updateBerkasDto.kks,
+          status: updateBerkasDto.status ? (updateBerkasDto.status as BerkasStatus) : undefined,
+          deskripsi: updateBerkasDto.deskripsi,
+          // KKS Workflow Fields
+          petugasUkurId: updateBerkasDto.petugasUkurId,
+          puLapangId: updateBerkasDto.puLapangId,
+          noSTP: updateBerkasDto.noSTP,
+          tglSTP: updateBerkasDto.tglSTP ? new Date(updateBerkasDto.tglSTP) : undefined,
+          noSHATNIBEL: updateBerkasDto.noSHATNIBEL,
+          luasHasilUkur: updateBerkasDto.luasHasilUkur,
+          nib: updateBerkasDto.nib,
+          nibel: updateBerkasDto.nibel,
+          jumlahBidang: updateBerkasDto.jumlahBidang,
+          noSU: updateBerkasDto.noSU,
+        },
+        include: {
+          createdBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          petugasUkur: {
+            select: {
+              id: true,
+              nama: true,
+              nip: true,
+              jabatan: true,
+            },
+          },
+          puLapang: {
+            select: {
+              id: true,
+              nama: true,
+              nip: true,
+              jabatan: true,
+            },
           },
         },
-        petugasUkur: {
-          select: {
-            id: true,
-            nama: true,
-            nip: true,
-            jabatan: true,
-          },
+      });
+
+      // Record audit trail for admin edit
+      await tx.berkasHistory.create({
+        data: {
+          berkasId: id,
+          oldStatus: berkas.status,
+          newStatus: berkas.status,
+          changedById: userId,
+          reason: 'Data berkas diperbarui oleh Administrator',
         },
-        puLapang: {
-          select: {
-            id: true,
-            nama: true,
-            nip: true,
-            jabatan: true,
-          },
-        },
-      },
+      });
+
+      return result;
     });
 
     return updatedBerkas;

@@ -6,12 +6,15 @@ import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
+import EditBerkasModal from '@/components/modals/EditBerkasModal';
+import { useAuthStore } from '@/stores';
 
 type TabType = 'detail' | 'history' | 'catatan';
 
 interface Berkas {
   id: string;
   nomor: string;
+  isClosed?: boolean;
   namaPemohon?: string;
   tanggalBerkas?: string;
   kegiatan?: string;
@@ -72,11 +75,15 @@ interface Berkas {
 export default function BerkasDetailPage() {
   const params = useParams();
   const berkasId = params.id as string;
+  const currentUser = useAuthStore((s) => s.user);
+
+  const isAdmin = currentUser?.roles?.some((r) => r.name === 'administrator') ?? false;
 
   const [activeTab, setActiveTab] = useState<TabType>('detail');
   const [berkas, setBerkas] = useState<Berkas | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBerkasDetail();
@@ -171,12 +178,30 @@ export default function BerkasDetailPage() {
 
   return (
     <div className="space-y-6">
+      {/* Edit Modal */}
+      {isAdmin && berkas && (
+        <EditBerkasModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onSuccess={() => {
+            setEditModalOpen(false);
+            fetchBerkasDetail();
+          }}
+          berkas={berkas}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/berkas/all">
-          <Button variant="outline">← Kembali</Button>
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">📄 Detail Berkas</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link href="/berkas/all">
+            <Button variant="outline">← Kembali</Button>
+          </Link>
+          <h1 className="text-3xl font-bold text-gray-900">📄 Detail Berkas</h1>
+        </div>
+        {isAdmin && berkas && !berkas.isClosed && (
+          <Button onClick={() => setEditModalOpen(true)}>✏️ Edit Berkas</Button>
+        )}
       </div>
 
       {/* Main Card with Tabs */}
