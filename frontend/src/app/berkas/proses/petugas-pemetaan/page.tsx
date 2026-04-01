@@ -239,8 +239,8 @@ export default function PetugasPemetaanPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <table className="w-full">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[820px]">
           <thead className="bg-gray-100 border-b border-gray-300">
             <tr>
               <th
@@ -309,10 +309,7 @@ export default function PetugasPemetaanPage() {
               </tr>
             ) : filteredBerkas.length === 0 ? (
               <tr>
-                <td
-                  colSpan={9}
-                  className="px-3 py-8 text-center text-sm text-gray-500 font-medium"
-                >
+                <td colSpan={9} className="px-3 py-8 text-center text-sm text-gray-500 font-medium">
                   {activeTab === 'proses'
                     ? 'Tidak ada berkas dalam proses'
                     : 'Tidak ada berkas revisi'}
@@ -363,7 +360,9 @@ export default function PetugasPemetaanPage() {
                       title={`${berkas.desa || '-'}, ${berkas.kecamatan || '-'}`}
                     >
                       <span className="block font-medium">{berkas.desa || '-'}</span>
-                      <span className="block text-[10px] text-gray-500">{berkas.kecamatan || '-'}</span>
+                      <span className="block text-[10px] text-gray-500">
+                        {berkas.kecamatan || '-'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '14%' }}>

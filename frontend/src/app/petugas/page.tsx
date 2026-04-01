@@ -32,8 +32,8 @@ export default function PetugasPage() {
       setLoading(true);
       setError(null);
 
-      // Fetch petugas
-      const petugasResponse = await apiClient.get<any>('/petugas');
+      // Fetch petugas - gunakan limit besar agar semua petugas tampil (tidak terpotong pagination)
+      const petugasResponse = await apiClient.get<any>('/petugas?limit=1000');
       let petugasData: Petugas[] = [];
       if (petugasResponse.data?.data?.data) {
         petugasData = Array.isArray(petugasResponse.data.data.data)

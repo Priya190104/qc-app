@@ -188,15 +188,17 @@ export default function AkunPage() {
                       </a>
                     </td>
                     <td className="px-6 py-4">
-                      {/* Get first role if available */}
                       {user.roles && user.roles.length > 0 ? (
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getRoleBadgeColor(
-                            user.roles[0].name
-                          )}`}
-                        >
-                          {getRoleLabel(user.roles[0].name)}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {user.roles.map((role) => (
+                            <span
+                              key={role.id}
+                              className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getRoleBadgeColor(role.name)}`}
+                            >
+                              {getRoleLabel(role.name)}
+                            </span>
+                          ))}
+                        </div>
                       ) : (
                         <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
                           User

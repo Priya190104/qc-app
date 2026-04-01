@@ -160,9 +160,9 @@ export default function KKSPage() {
       {/* Filter Component */}
       <BerkasFilter onFilterChange={handleFilterChange} />
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
         {/* Table */}
-        <table className="w-full">
+        <table className="w-full min-w-[820px]">
           <thead className="bg-gray-100 border-b border-gray-300">
             <tr>
               <th className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider">
@@ -204,10 +204,7 @@ export default function KKSPage() {
               </tr>
             ) : berkasList.length === 0 ? (
               <tr>
-                <td
-                  colSpan={9}
-                  className="px-3 py-8 text-center text-sm text-gray-500 font-medium"
-                >
+                <td colSpan={9} className="px-3 py-8 text-center text-sm text-gray-500 font-medium">
                   Tidak ada berkas ditemukan
                 </td>
               </tr>
@@ -231,7 +228,9 @@ export default function KKSPage() {
                   <td className="px-3 py-2.5 text-xs text-gray-700">{berkas.kegiatan || '-'}</td>
                   <td className="px-3 py-2.5 text-xs text-gray-700">
                     <span className="block font-medium">{berkas.desa || '-'}</span>
-                    <span className="block text-[10px] text-gray-500">{berkas.kecamatan || '-'}</span>
+                    <span className="block text-[10px] text-gray-500">
+                      {berkas.kecamatan || '-'}
+                    </span>
                   </td>
                   <td className="px-3 py-2.5 text-xs text-gray-700">
                     {berkas.petugasKKS ? (

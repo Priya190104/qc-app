@@ -17,7 +17,7 @@ export default function UserModal({ isOpen, onClose, onSuccess, editUser, roles 
     email: '',
     password: '',
     phoneNumber: '',
-    roleId: '',
+    roleIds: [] as string[],
     isActive: true,
   });
 
@@ -33,7 +33,7 @@ export default function UserModal({ isOpen, onClose, onSuccess, editUser, roles 
         email: editUser.email || '',
         password: '',
         phoneNumber: editUser.phoneNumber || '',
-        roleId: editUser.roles?.[0]?.id || '',
+        roleIds: editUser.roles?.map((r) => r.id) ?? [],
         isActive: editUser.isActive,
       });
     } else {
@@ -43,7 +43,7 @@ export default function UserModal({ isOpen, onClose, onSuccess, editUser, roles 
         email: '',
         password: '',
         phoneNumber: '',
-        roleId: '',
+        roleIds: [],
         isActive: true,
       });
     }
@@ -72,8 +72,8 @@ export default function UserModal({ isOpen, onClose, onSuccess, editUser, roles 
       if (!editUser && formData.password.length < 8) {
         throw new Error('Password minimal 8 karakter');
       }
-      if (formData.roleId === '') {
-        throw new Error('Role harus dipilih');
+      if (formData.roleIds.length === 0) {
+        throw new Error('Minimal satu role harus dipilih');
       }
 
       const url = editUser ? `/users/${editUser.id}` : '/users';
@@ -83,7 +83,7 @@ export default function UserModal({ isOpen, onClose, onSuccess, editUser, roles 
         firstName: formData.firstName,
         lastName: formData.lastName,
         phoneNumber: formData.phoneNumber,
-        roleIds: [formData.roleId],
+        roleIds: formData.roleIds,
       };
 
       // Only include isActive for PATCH (edit) requests
@@ -207,23 +207,41 @@ export default function UserModal({ isOpen, onClose, onSuccess, editUser, roles 
 
           {/* Role */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
-            <select
-              value={formData.roleId}
-              onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">-- Pilih Role --</option>
-              {roles.length === 0 ? (
-                <option disabled>Tidak ada role tersedia</option>
-              ) : (
-                roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))
-              )}
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Role *{' '}
+              <span className="text-xs text-gray-400 font-normal">
+                (bisa pilih lebih dari satu)
+              </span>
+            </label>
+            {roles.length === 0 ? (
+              <p className="text-sm text-gray-500">Tidak ada role tersedia</p>
+            ) : (
+              <div className="border border-gray-300 rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
+                {roles.map((role) => (
+                  <label
+                    key={role.id}
+                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5"
+                  >
+                    <input
+                      type="checkbox"
+                      value={role.id}
+                      checked={formData.roleIds.includes(role.id)}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setFormData({
+                          ...formData,
+                          roleIds: e.target.checked
+                            ? [...formData.roleIds, id]
+                            : formData.roleIds.filter((r) => r !== id),
+                        });
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{role.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Status */}

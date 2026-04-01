@@ -35,6 +35,8 @@ const ADMIN_ROLES = ['administrator', 'admin'];
 export default function ProsesBerkasPage() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  // null = admin (tampilkan semua card), array = hanya tampilkan card role yang dimiliki
+  const [userRoleHrefs, setUserRoleHrefs] = useState<string[] | null>(null);
 
   useEffect(() => {
     const roles = authService.getTokenRoles();
@@ -42,14 +44,19 @@ export default function ProsesBerkasPage() {
     const isAdmin = normalized.some((r) => ADMIN_ROLES.includes(r));
 
     if (!isAdmin) {
-      for (const r of normalized) {
-        const href = ROLE_HREF_MAP[r];
-        if (href) {
-          router.replace(href);
-          return;
-        }
+      // Kumpulkan semua href yang cocok dengan role user (deduplikasi)
+      const matchedHrefs = [...new Set(normalized.map((r) => ROLE_HREF_MAP[r]).filter(Boolean))];
+
+      if (matchedHrefs.length === 1) {
+        // Hanya 1 role yang cocok → langsung redirect
+        router.replace(matchedHrefs[0]);
+        return;
       }
+
+      // Lebih dari 1 role → simpan agar hanya card yang relevan yang ditampilkan
+      setUserRoleHrefs(matchedHrefs);
     }
+    // Admin: userRoleHrefs tetap null (tampilkan semua card)
     setChecked(true);
   }, [router]);
   const roleCards: RoleCard[] = [
@@ -158,6 +165,10 @@ export default function ProsesBerkasPage() {
     );
   }
 
+  // Admin tampilkan semua card; non-admin dengan multi-role tampilkan hanya card yang dimiliki
+  const visibleCards =
+    userRoleHrefs === null ? roleCards : roleCards.filter((c) => userRoleHrefs.includes(c.href));
+
   return (
     <div className="space-y-6">
       <div>
@@ -165,7 +176,7 @@ export default function ProsesBerkasPage() {
         <p className="text-gray-600 mt-1">Pilih peran untuk melihat berkas yang sesuai</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {roleCards.map((card) => (
+        {visibleCards.map((card) => (
           <Link key={card.id} href={card.href}>
             <Card
               className={`h-64 p-6 cursor-pointer border-2 transition-all flex flex-col ${getCardBgColor(card.color)}`}

@@ -199,8 +199,8 @@ export default function OperatorDataBerkasPage() {
       {/* Filter Component */}
       <BerkasFilter onFilterChange={handleFilterChange} />
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <table className="w-full">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[700px]">
           <thead className="bg-gray-100 border-b border-gray-300">
             <tr>
               <th
