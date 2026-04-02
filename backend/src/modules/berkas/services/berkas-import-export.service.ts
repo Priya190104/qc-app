@@ -71,6 +71,18 @@ export class BerkasImportExportService {
               lastName: true,
             },
           },
+          petugasUkur: {
+            select: { nama: true, nip: true },
+          },
+          puLapang: {
+            select: { nama: true, nip: true },
+          },
+          petugasPemetaan: {
+            select: { nama: true, nip: true },
+          },
+          petugasKKS: {
+            select: { nama: true, nip: true },
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -90,10 +102,27 @@ export class BerkasImportExportService {
         Desa: berkas.desa || '',
         Kecamatan: berkas.kecamatan || '',
         'Nama Prosedur': berkas.namaProsedur || '',
-        'Luas Pendaftaran': berkas.luasPendaftaran?.toString() || '',
+        'Luas Pendaftaran (m²)': berkas.luasPendaftaran?.toString() || '',
         'DI 302': berkas.di302 || '',
         'DI 305': berkas.di305 || '',
-        KKS: berkas.kks || '',
+        'Petugas Ukur': berkas.petugasUkur
+          ? `${berkas.petugasUkur.nama} (${berkas.petugasUkur.nip})`
+          : '',
+        'PU Lapang': berkas.puLapang ? `${berkas.puLapang.nama} (${berkas.puLapang.nip})` : '',
+        'No. STP': berkas.noSTP || '',
+        'Tgl. STP': berkas.tglSTP ? new Date(berkas.tglSTP).toLocaleDateString('id-ID') : '',
+        'No. SHAT/NIBEL': berkas.noSHATNIBEL || '',
+        'Petugas Pemetaan': berkas.petugasPemetaan
+          ? `${berkas.petugasPemetaan.nama} (${berkas.petugasPemetaan.nip})`
+          : '',
+        'Luas Hasil Ukur (m²)': berkas.luasHasilUkur?.toString() || '',
+        NIB: berkas.nib || '',
+        NIBEL: berkas.nibel || '',
+        'No. SU': berkas.noSU || '',
+        'Jumlah Bidang': berkas.jumlahBidang?.toString() || '',
+        KKS: berkas.petugasKKS
+          ? `${berkas.petugasKKS.nama} (${berkas.petugasKKS.nip})`
+          : berkas.kks || '',
         Status: berkas.status,
         Deskripsi: berkas.deskripsi || '',
         Pembuat: berkas.createdBy
@@ -111,18 +140,29 @@ export class BerkasImportExportService {
       const columnWidths = [
         { wch: 5 }, // No.
         { wch: 15 }, // No. Berkas
-        { wch: 20 }, // Nama Pemohon
+        { wch: 22 }, // Nama Pemohon
         { wch: 15 }, // Tanggal Masuk
         { wch: 12 }, // Tahun Berkas
         { wch: 20 }, // Kegiatan
         { wch: 15 }, // Desa
         { wch: 15 }, // Kecamatan
-        { wch: 20 }, // Nama Prosedur
-        { wch: 18 }, // Luas Pendaftaran
+        { wch: 22 }, // Nama Prosedur
+        { wch: 20 }, // Luas Pendaftaran
         { wch: 12 }, // DI 302
         { wch: 12 }, // DI 305
-        { wch: 12 }, // KKS
-        { wch: 12 }, // Status
+        { wch: 28 }, // Petugas Ukur
+        { wch: 28 }, // PU Lapang
+        { wch: 15 }, // No. STP
+        { wch: 15 }, // Tgl. STP
+        { wch: 18 }, // No. SHAT/NIBEL
+        { wch: 28 }, // Petugas Pemetaan
+        { wch: 20 }, // Luas Hasil Ukur
+        { wch: 15 }, // NIB
+        { wch: 15 }, // NIBEL
+        { wch: 15 }, // No. SU
+        { wch: 15 }, // Jumlah Bidang
+        { wch: 28 }, // KKS
+        { wch: 14 }, // Status
         { wch: 30 }, // Deskripsi
         { wch: 20 }, // Pembuat
         { wch: 15 }, // Tanggal Dibuat

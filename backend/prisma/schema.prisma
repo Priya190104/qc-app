@@ -160,7 +160,7 @@ model BerkasHistory {
 model Petugas {
   id                  String   @id @default(uuid()) @db.Uuid
   nama                String
-  nip                 String   @unique
+  nip                 String
   jabatan             String?
   departemen          String?
   phoneNumber         String?
@@ -173,6 +173,7 @@ model Petugas {
   berkasPetugasPemetaan Berkas[] @relation("petugasPemetaan")
   berkasKKS           Berkas[] @relation("petugasKKS")
 
+  @@unique([nip, departemen])
   @@index([nip])
   @@index([isActive])
 }

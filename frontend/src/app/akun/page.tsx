@@ -33,7 +33,7 @@ export default function AkunPage() {
       setError(null);
 
       // Fetch users
-      const usersResponse = await apiClient.get<any>('/users');
+      const usersResponse = await apiClient.get<any>('/users?limit=1000');
       console.log('Users Response:', usersResponse.data);
       let userData: User[] = [];
       if (usersResponse.data?.data?.data) {
@@ -152,9 +152,9 @@ export default function AkunPage() {
 
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
               <tr>
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">Nama</th>
                 <th className="text-left px-6 py-4 font-semibold text-gray-700">Email</th>

@@ -8,13 +8,18 @@ export class PetugasService {
   constructor(private prisma: PrismaService) {}
 
   async create(createPetugasDto: CreatePetugasDto) {
-    // Check if NIP already exists
-    const existingPetugas = await this.prisma.petugas.findUnique({
-      where: { nip: createPetugasDto.nip },
+    // Check if NIP + departemen combination already exists
+    const existingPetugas = await this.prisma.petugas.findFirst({
+      where: {
+        nip: createPetugasDto.nip,
+        departemen: createPetugasDto.departemen ?? null,
+      },
     });
 
     if (existingPetugas) {
-      throw new BadRequestException('NIP already exists');
+      throw new BadRequestException(
+        'Petugas dengan NIP ini sudah terdaftar di departemen yang sama'
+      );
     }
 
     const petugas = await this.prisma.petugas.create({
@@ -83,14 +88,24 @@ export class PetugasService {
       throw new NotFoundException('Petugas not found');
     }
 
-    // Check if NIP is being updated and if it's already used by another petugas
-    if (updatePetugasDto.nip && updatePetugasDto.nip !== petugas.nip) {
-      const existingNip = await this.prisma.petugas.findUnique({
-        where: { nip: updatePetugasDto.nip },
+    // Check if updated NIP + departemen combination is already used by another petugas
+    const newNip = updatePetugasDto.nip ?? petugas.nip;
+    const newDepartemen =
+      updatePetugasDto.departemen !== undefined ? updatePetugasDto.departemen : petugas.departemen;
+
+    if (newNip !== petugas.nip || newDepartemen !== petugas.departemen) {
+      const existingCombination = await this.prisma.petugas.findFirst({
+        where: {
+          nip: newNip,
+          departemen: newDepartemen ?? null,
+          NOT: { id },
+        },
       });
 
-      if (existingNip) {
-        throw new BadRequestException('NIP already exists');
+      if (existingCombination) {
+        throw new BadRequestException(
+          'Petugas dengan NIP ini sudah terdaftar di departemen yang sama'
+        );
       }
     }
 

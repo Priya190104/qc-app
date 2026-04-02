@@ -217,16 +217,25 @@ export default function PilihKKSPage() {
             font-size: 18px;
             font-weight: normal;
           }
+          .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #666;
+            margin: 20px 0 10px 0;
+            padding-bottom: 4px;
+          }
           .content {
-            margin: 30px 0;
+            margin: 20px 0;
           }
           .info-row {
             display: flex;
-            margin: 10px 0;
+            margin: 6px 0;
           }
           .info-label {
-            width: 200px;
+            width: 220px;
             font-weight: bold;
+            flex-shrink: 0;
           }
           .info-value {
             flex: 1;
@@ -260,7 +269,8 @@ export default function PilihKKSPage() {
         
         <div class="content">
           <p>Pada hari ini, ${todayDate}, telah diserahkan berkas dengan rincian sebagai berikut:</p>
-          
+
+          <div class="section-title">Informasi Umum Berkas</div>
           <div class="info-row">
             <div class="info-label">Nomor Berkas</div>
             <div class="info-value">: ${berkas?.nomor || '-'}</div>
@@ -270,13 +280,87 @@ export default function PilihKKSPage() {
             <div class="info-value">: ${berkas?.namaPemohon || '-'}</div>
           </div>
           <div class="info-row">
+            <div class="info-label">Tanggal Berkas</div>
+            <div class="info-value">: ${berkas?.tanggalBerkas ? new Date(berkas.tanggalBerkas).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Tahun Berkas</div>
+            <div class="info-value">: ${berkas?.tahunBerkas || '-'}</div>
+          </div>
+          <div class="info-row">
             <div class="info-label">Kegiatan</div>
             <div class="info-value">: ${berkas?.kegiatan || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Prosedur</div>
+            <div class="info-value">: ${berkas?.namaProsedur || '-'}</div>
           </div>
           <div class="info-row">
             <div class="info-label">Lokasi</div>
             <div class="info-value">: ${berkas?.desa || '-'}, ${berkas?.kecamatan || '-'}</div>
           </div>
+          <div class="info-row">
+            <div class="info-label">Luas Pendaftaran (m²)</div>
+            <div class="info-value">: ${berkas?.luasPendaftaran != null ? berkas.luasPendaftaran.toLocaleString('id-ID') : '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">DI 302</div>
+            <div class="info-value">: ${berkas?.di302 || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">DI 305</div>
+            <div class="info-value">: ${berkas?.di305 || '-'}</div>
+          </div>
+
+          <div class="section-title">Data Pengukuran</div>
+          <div class="info-row">
+            <div class="info-label">Petugas Ukur</div>
+            <div class="info-value">: ${berkas?.petugasUkur ? berkas.petugasUkur.nama + ' (' + berkas.petugasUkur.nip + ')' : '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">PU Lapang</div>
+            <div class="info-value">: ${berkas?.puLapang ? berkas.puLapang.nama + ' (' + berkas.puLapang.nip + ')' : '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">No. STP</div>
+            <div class="info-value">: ${berkas?.noSTP || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Tgl. STP</div>
+            <div class="info-value">: ${berkas?.tglSTP ? new Date(berkas.tglSTP).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">No. SHAT/NIBEL</div>
+            <div class="info-value">: ${berkas?.noSHATNIBEL || '-'}</div>
+          </div>
+
+          <div class="section-title">Data Pemetaan</div>
+          <div class="info-row">
+            <div class="info-label">Petugas Pemetaan</div>
+            <div class="info-value">: ${berkas?.petugasPemetaan ? berkas.petugasPemetaan.nama + ' (' + berkas.petugasPemetaan.nip + ')' : '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Luas Hasil Ukur (m²)</div>
+            <div class="info-value">: ${berkas?.luasHasilUkur != null ? berkas.luasHasilUkur.toLocaleString('id-ID') : '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">NIB</div>
+            <div class="info-value">: ${berkas?.nib || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">NIBEL</div>
+            <div class="info-value">: ${berkas?.nibel || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">No. SU</div>
+            <div class="info-value">: ${berkas?.noSU || '-'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Jumlah Bidang</div>
+            <div class="info-value">: ${berkas?.jumlahBidang != null ? berkas.jumlahBidang : '-'}</div>
+          </div>
+
+          <div class="section-title">Penugasan KKS</div>
           <div class="info-row">
             <div class="info-label">Status</div>
             <div class="info-value">: Diserahkan ke KKS</div>
