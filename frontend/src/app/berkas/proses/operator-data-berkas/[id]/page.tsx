@@ -25,6 +25,8 @@ interface Berkas {
   tahunBerkas?: number;
   namaProsedur?: string;
   luasPendaftaran?: number;
+  di302?: string;
+  di305?: string;
   // Pengukuran
   petugasUkur?: {
     nama: string;
