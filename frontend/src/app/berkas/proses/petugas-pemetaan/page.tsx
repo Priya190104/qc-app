@@ -60,6 +60,7 @@ export default function PetugasPemetaanPage() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: itemsPerPage.toString(),
+        status: 'DI_PETUGAS_PEMETAAN,REVISI_KKS,REVISI_KASI',
       });
 
       if (filterParams.search) params.append('search', filterParams.search);
@@ -74,17 +75,9 @@ export default function PetugasPemetaanPage() {
 
       if (data && typeof data === 'object' && 'data' in data) {
         // Paginated response
-        const filteredData = Array.isArray(data.data)
-          ? data.data.filter(
-              (b: Berkas) =>
-                b.status === 'DI_PETUGAS_PEMETAAN' ||
-                b.status === 'REVISI_KKS' ||
-                b.status === 'REVISI_KASI'
-            )
-          : [];
-        setBerkasList(filteredData);
+        setBerkasList(Array.isArray(data.data) ? data.data : []);
         setTotalPages(data.pagination?.totalPages || 1);
-        setTotalItems(data.pagination?.total || filteredData.length);
+        setTotalItems(data.pagination?.total || 0);
         setCurrentPage(data.pagination?.page || page);
       } else {
         // Non-paginated response

@@ -111,9 +111,17 @@ export class BerkasService {
       where.tahunBerkas = filters.tahunBerkas;
     }
 
-    // Status filter
+    // Status filter (supports comma-separated multiple statuses)
     if (filters?.status) {
-      where.status = filters.status;
+      const statuses = filters.status
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (statuses.length > 1) {
+        where.status = { in: statuses };
+      } else {
+        where.status = statuses[0];
+      }
     }
 
     // Execute queries in parallel for better performance

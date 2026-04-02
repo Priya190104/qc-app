@@ -111,7 +111,9 @@ export default function PilihKKSPage() {
         }
 
         // Fetch petugas KKS - using /petugas endpoint with departemen filter
-        const petugasResponse = await apiClient.get<ApiResponse<any>>('/petugas');
+        const petugasResponse = await apiClient.get<ApiResponse<any>>(
+          '/petugas?departemen=KKS&limit=100'
+        );
 
         let petugasData: Petugas[] = [];
         if (petugasResponse.data?.data?.data) {
@@ -122,9 +124,7 @@ export default function PilihKKSPage() {
           petugasData = Array.isArray(petugasResponse.data.data) ? petugasResponse.data.data : [];
         }
 
-        // Filter only KKS department
-        const kksData = petugasData.filter((p) => p.departemen === 'KKS');
-        setKksList(kksData);
+        setKksList(petugasData);
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
         setError(errorMessage);

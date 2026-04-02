@@ -51,6 +51,7 @@ export default function OperatorDataUkurPage() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: itemsPerPage.toString(),
+        status: 'DI_OPERATOR_DATA_UKUR',
       });
 
       if (filterParams.search) params.append('search', filterParams.search);
@@ -65,12 +66,9 @@ export default function OperatorDataUkurPage() {
 
       if (data && typeof data === 'object' && 'data' in data) {
         // Paginated response
-        const filteredData = Array.isArray(data.data)
-          ? data.data.filter((b: Berkas) => b.status === 'DI_OPERATOR_DATA_UKUR')
-          : [];
-        setBerkasList(filteredData);
+        setBerkasList(Array.isArray(data.data) ? data.data : []);
         setTotalPages(data.pagination?.totalPages || 1);
-        setTotalItems(data.pagination?.total || filteredData.length);
+        setTotalItems(data.pagination?.total || 0);
         setCurrentPage(data.pagination?.page || page);
       } else {
         // Non-paginated response
