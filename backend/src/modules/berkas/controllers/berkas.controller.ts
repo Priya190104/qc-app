@@ -113,6 +113,18 @@ export class BerkasController {
     return this.berkasService.closeBerkas(id, req.user.id);
   }
 
+  @Patch(':id/catatan')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update catatan berkas (semua user terautentikasi)' })
+  async updateCatatan(
+    @Param('id') id: string,
+    @Body() body: { deskripsi: string },
+    @Request() req: any
+  ) {
+    return this.berkasService.updateCatatan(id, body.deskripsi, req.user.id);
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()

@@ -47,7 +47,7 @@ export default function BerkasCatatanTab({ berkasId, initialDeskripsi }: BerkasC
     setSaving(true);
     setSaveError(null);
     try {
-      await apiClient.patch(`/berkas/${berkasId}`, {
+      await apiClient.patch(`/berkas/${berkasId}/catatan`, {
         deskripsi: JSON.stringify(list),
       });
     } catch (err: any) {

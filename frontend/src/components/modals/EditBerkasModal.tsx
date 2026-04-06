@@ -6,6 +6,20 @@ import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
 import { apiClient } from '@/lib/api';
 
+const STAGES_ORDER = [
+  'DI_OPERATOR_DATA_UKUR',
+  'DI_PETUGAS_UKUR',
+  'DI_OPERATOR_DATA_PEMETAAN',
+  'DI_PETUGAS_PEMETAAN',
+  'PEMILIHAN_KKS',
+  'DI_KKS',
+  'REVISI_KKS',
+  'DI_KEPALA_SEKSI',
+  'REVISI_KASI',
+  'SELESAI',
+  'DITUTUP',
+];
+
 interface EditBerkasModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,6 +27,7 @@ interface EditBerkasModalProps {
   berkas: {
     id: string;
     nomor: string;
+    status?: string;
     kegiatan?: string;
     tanggalBerkas?: string;
     tahunBerkas?: number;
@@ -24,6 +39,15 @@ interface EditBerkasModalProps {
     di302?: string;
     di305?: string;
     deskripsi?: string;
+    // Workflow fields
+    noSTP?: string;
+    tglSTP?: string;
+    noSHATNIBEL?: string;
+    luasHasilUkur?: number;
+    nib?: string;
+    nibel?: string;
+    jumlahBidang?: number;
+    noSU?: string;
   };
 }
 
@@ -427,6 +451,15 @@ export default function EditBerkasModal({
     di302: '',
     di305: '',
     deskripsi: '',
+    // Workflow fields
+    noSTP: '',
+    tglSTP: '',
+    noSHATNIBEL: '',
+    luasHasilUkur: '',
+    nib: '',
+    nibel: '',
+    jumlahBidang: '',
+    noSU: '',
   });
 
   const [filteredDesa, setFilteredDesa] = useState<DesaOption[]>([]);
@@ -479,6 +512,15 @@ export default function EditBerkasModal({
       di302: berkas.di302 ?? '',
       di305: berkas.di305 ?? '',
       deskripsi: berkas.deskripsi ?? '',
+      // Workflow fields
+      noSTP: berkas.noSTP ?? '',
+      tglSTP: berkas.tglSTP ? berkas.tglSTP.split('T')[0] : '',
+      noSHATNIBEL: berkas.noSHATNIBEL ?? '',
+      luasHasilUkur: berkas.luasHasilUkur?.toString() ?? '',
+      nib: berkas.nib ?? '',
+      nibel: berkas.nibel ?? '',
+      jumlahBidang: berkas.jumlahBidang?.toString() ?? '',
+      noSU: berkas.noSU ?? '',
     });
 
     if (kecamatanId) {
@@ -527,7 +569,7 @@ export default function EditBerkasModal({
       if (!formData.di302.trim()) throw new Error('DI.302 harus diisi');
       if (!formData.di305.trim()) throw new Error('DI.305 harus diisi');
 
-      const payload = {
+      const payload: Record<string, any> = {
         kegiatan: kegiatanData.find((k) => k.id === formData.kegiatan)?.nama || formData.kegiatan,
         tanggalBerkas: formData.tanggalBerkas,
         tahunBerkas: parseInt(formData.tahunBerkas),
@@ -543,6 +585,23 @@ export default function EditBerkasModal({
         deskripsi: formData.deskripsi || undefined,
       };
 
+      // Append Data Ukur fields if visible
+      const stageIdx = STAGES_ORDER.indexOf(berkas.status ?? '');
+      if (stageIdx >= 0) {
+        if (formData.noSTP) payload.noSTP = formData.noSTP;
+        if (formData.tglSTP) payload.tglSTP = formData.tglSTP;
+        if (formData.noSHATNIBEL) payload.noSHATNIBEL = formData.noSHATNIBEL;
+      }
+
+      // Append Hasil Ukur fields if visible
+      if (stageIdx >= STAGES_ORDER.indexOf('DI_PETUGAS_UKUR')) {
+        if (formData.luasHasilUkur) payload.luasHasilUkur = parseInt(formData.luasHasilUkur);
+        if (formData.nib) payload.nib = formData.nib;
+        if (formData.nibel) payload.nibel = formData.nibel;
+        if (formData.jumlahBidang) payload.jumlahBidang = parseInt(formData.jumlahBidang);
+        if (formData.noSU) payload.noSU = formData.noSU;
+      }
+
       await apiClient.patch(`/berkas/${berkas.id}`, payload);
       onSuccess();
       onClose();
@@ -554,6 +613,10 @@ export default function EditBerkasModal({
   };
 
   if (!isOpen) return null;
+
+  const currentStageIndex = STAGES_ORDER.indexOf(berkas.status ?? '');
+  const showDataUkur = currentStageIndex >= 0;
+  const showHasilUkur = currentStageIndex >= STAGES_ORDER.indexOf('DI_PETUGAS_UKUR');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -760,6 +823,101 @@ export default function EditBerkasModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
             />
           </div>
+
+          {/* Data Ukur (stage: DI_OPERATOR_DATA_UKUR ke atas) */}
+          {showDataUkur && (
+            <div className="border-t border-gray-200 pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">📐 Data Pengukuran</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">No. STP</label>
+                  <Input
+                    value={formData.noSTP}
+                    onChange={(e) => handleInputChange(e, 'noSTP')}
+                    placeholder="Nomor STP"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tanggal STP
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.tglSTP}
+                    onChange={(e) => handleInputChange(e, 'tglSTP')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    No. SHA/TNIBEL
+                  </label>
+                  <Input
+                    value={formData.noSHATNIBEL}
+                    onChange={(e) => handleInputChange(e, 'noSHATNIBEL')}
+                    placeholder="Nomor SHA/TNIBEL"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hasil Ukur (stage: DI_PETUGAS_UKUR ke atas) */}
+          {showHasilUkur && (
+            <div className="border-t border-gray-200 pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">📏 Hasil Pengukuran</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Luas Hasil Ukur (m²)
+                  </label>
+                  <Input
+                    type="number"
+                    value={formData.luasHasilUkur}
+                    onChange={(e) => handleInputChange(e, 'luasHasilUkur')}
+                    placeholder="Luas hasil pengukuran"
+                    min={1}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Jumlah Bidang
+                  </label>
+                  <Input
+                    type="number"
+                    value={formData.jumlahBidang}
+                    onChange={(e) => handleInputChange(e, 'jumlahBidang')}
+                    placeholder="Jumlah bidang tanah"
+                    min={1}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">NIB</label>
+                  <Input
+                    value={formData.nib}
+                    onChange={(e) => handleInputChange(e, 'nib')}
+                    placeholder="Nomor Identifikasi Bidang"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">NIBEL</label>
+                  <Input
+                    value={formData.nibel}
+                    onChange={(e) => handleInputChange(e, 'nibel')}
+                    placeholder="NIBEL"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">No. SU</label>
+                  <Input
+                    value={formData.noSU}
+                    onChange={(e) => handleInputChange(e, 'noSU')}
+                    placeholder="Nomor Surat Ukur"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">

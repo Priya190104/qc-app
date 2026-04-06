@@ -51,7 +51,7 @@ export class PetugasService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { nama: 'asc' },
       }),
       this.prisma.petugas.count({ where }),
     ]);

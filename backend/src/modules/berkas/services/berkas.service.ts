@@ -408,6 +408,23 @@ export class BerkasService {
     return updatedBerkas;
   }
 
+  async updateCatatan(id: string, deskripsi: string, _userId: string) {
+    const berkas = await this.prisma.berkas.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!berkas) {
+      throw new NotFoundException('Berkas tidak ditemukan');
+    }
+
+    return this.prisma.berkas.update({
+      where: { id },
+      data: { deskripsi },
+      select: { id: true, deskripsi: true },
+    });
+  }
+
   async closeBerkas(id: string, userId: string) {
     const berkas = await this.prisma.berkas.findUnique({
       where: { id },
