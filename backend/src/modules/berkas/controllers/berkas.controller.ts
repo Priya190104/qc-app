@@ -78,7 +78,8 @@ export class BerkasController {
     @Query('kecamatan') kecamatan?: string,
     @Query('tahunBerkas') tahunBerkas?: string,
     @Query('status') status?: string,
-    @Query('includeClosed') includeClosed?: string
+    @Query('includeClosed') includeClosed?: string,
+    @Query('revisionTarget') revisionTarget?: string
   ) {
     const filters = {
       page: page ? parseInt(page) : 1,
@@ -89,6 +90,7 @@ export class BerkasController {
       tahunBerkas: tahunBerkas ? parseInt(tahunBerkas) : undefined,
       status,
       includeClosed: includeClosed === 'true',
+      revisionTarget,
     };
     return this.berkasService.findAll(filters);
   }

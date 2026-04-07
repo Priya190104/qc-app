@@ -195,7 +195,13 @@ export default function DashboardPage() {
                         <td className="py-2 pr-3 text-gray-700">{b.namaPemohon}</td>
                         <td className="py-2 pr-3 text-gray-600">{b.kegiatan}</td>
                         <td className="py-2">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              b.jenis === 'Revisi'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}
+                          >
                             {b.jenis}
                           </span>
                         </td>

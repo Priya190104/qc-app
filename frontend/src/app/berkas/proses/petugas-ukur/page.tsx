@@ -23,6 +23,7 @@ interface Berkas {
     nip: string;
   };
   revisionCount: number;
+  lastRevisionFrom?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -68,6 +69,11 @@ export default function PetugasUkurPage() {
         status: statusByTab,
       });
 
+      // Filter revision berkas hanya yang ditujukan ke PETUGAS_UKUR
+      if (tab === 'revisi') {
+        params.append('revisionTarget', 'PETUGAS_UKUR');
+      }
+
       if (filterParams.search) params.append('search', filterParams.search);
       if (filterParams.desa) params.append('desa', filterParams.desa);
       if (filterParams.kecamatan) params.append('kecamatan', filterParams.kecamatan);
@@ -87,12 +93,14 @@ export default function PetugasUkurPage() {
       } else {
         // Non-paginated response
         const allData = Array.isArray(data) ? data : [];
-        let filteredData = allData.filter(
-          (b: Berkas) =>
-            b.status === 'DI_PETUGAS_UKUR' ||
-            b.status === 'REVISI_KKS' ||
-            b.status === 'REVISI_KASI'
-        );
+        let filteredData = allData.filter((b: Berkas) => {
+          if (b.status === 'DI_PETUGAS_UKUR') return true;
+          if (b.status === 'REVISI_KKS' || b.status === 'REVISI_KASI') {
+            // Hanya tampilkan jika revision ditujukan ke PETUGAS_UKUR
+            return b.lastRevisionFrom?.includes('PETUGAS_UKUR') ?? false;
+          }
+          return false;
+        });
 
         // Apply client-side filtering
         if (filterParams.search) {

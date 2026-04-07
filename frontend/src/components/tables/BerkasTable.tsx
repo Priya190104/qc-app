@@ -95,185 +95,240 @@ const BerkasTable: React.FC<BerkasTableProps> = ({
     );
   }
 
+  const ActionButtons = ({ berkas }: { berkas: Berkas }) => (
+    <div className="flex gap-1">
+      {showActions.view && (
+        <button
+          onClick={() => onView?.(berkas.id)}
+          title="Lihat Detail"
+          className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+            />
+          </svg>
+        </button>
+      )}
+      {showActions.close && !disableActionsForStatus.includes(berkas.status) && (
+        <button
+          onClick={() => onClose?.(berkas.id)}
+          title="Tutup Berkas"
+          className="p-1.5 rounded-lg text-orange-600 hover:bg-orange-100 hover:text-orange-700 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+
+  const StatusBadges = ({ berkas }: { berkas: Berkas }) => (
+    <div className="flex flex-col gap-0.5">
+      <span
+        className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(berkas.status)}`}
+      >
+        {getStatusLabel(berkas.status)}
+      </span>
+      {berkas.isClosed && (
+        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
+          🔒 Ditutup
+        </span>
+      )}
+    </div>
+  );
+
+  const emptyMessage = (
+    <p className="px-3 py-8 text-center text-sm text-gray-500 font-medium">
+      Tidak ada berkas ditemukan
+    </p>
+  );
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-      <table className="w-full">
-        <thead className="bg-gray-100 border-b border-gray-300">
-          <tr>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '5%' }}
-            >
-              No.
-            </th>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '11%' }}
-            >
-              No. Berkas
-            </th>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '16%' }}
-            >
-              Nama Pemohon
-            </th>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '11%' }}
-            >
-              Tanggal Masuk
-            </th>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '16%' }}
-            >
-              Kegiatan
-            </th>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '16%' }}
-            >
-              Desa, Kecamatan
-            </th>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '10%' }}
-            >
-              Status
-            </th>
-            <th
-              className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-              style={{ width: '15%' }}
-            >
-              Aksi
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {data.length === 0 ? (
+      {/* Mobile card view */}
+      <div className="block md:hidden">
+        {data.length === 0 ? (
+          emptyMessage
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {data.map((berkas, index) => (
+              <div key={berkas.id} className="p-4 hover:bg-blue-50 transition-colors duration-150">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs font-semibold text-gray-400 shrink-0">
+                      #{index + 1}
+                    </span>
+                    <span className="text-sm font-bold text-gray-900 truncate" title={berkas.nomor}>
+                      {berkas.nomor}
+                    </span>
+                  </div>
+                  <div className="shrink-0">
+                    <StatusBadges berkas={berkas} />
+                  </div>
+                </div>
+                <div className="space-y-1 mb-3">
+                  <div className="flex gap-1 text-xs text-gray-700">
+                    <span className="font-medium text-gray-500 shrink-0 w-24">Pemohon</span>
+                    <span className="truncate">{berkas.namaPemohon || '-'}</span>
+                  </div>
+                  <div className="flex gap-1 text-xs text-gray-700">
+                    <span className="font-medium text-gray-500 shrink-0 w-24">Tgl. Masuk</span>
+                    <span>{formatDate(berkas.tanggalBerkas)}</span>
+                  </div>
+                  <div className="flex gap-1 text-xs text-gray-700">
+                    <span className="font-medium text-gray-500 shrink-0 w-24">Kegiatan</span>
+                    <span className="truncate">{berkas.kegiatan || '-'}</span>
+                  </div>
+                  <div className="flex gap-1 text-xs text-gray-700">
+                    <span className="font-medium text-gray-500 shrink-0 w-24">Lokasi</span>
+                    <span className="truncate">
+                      {berkas.desa || '-'}, {berkas.kecamatan || '-'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <ActionButtons berkas={berkas} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-100 border-b border-gray-300">
             <tr>
-              <td colSpan={8} className="px-3 py-8 text-center text-sm text-gray-500 font-medium">
-                Tidak ada berkas ditemukan
-              </td>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '5%' }}
+              >
+                No.
+              </th>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '11%' }}
+              >
+                No. Berkas
+              </th>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '16%' }}
+              >
+                Nama Pemohon
+              </th>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '11%' }}
+              >
+                Tanggal Masuk
+              </th>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '16%' }}
+              >
+                Kegiatan
+              </th>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '16%' }}
+              >
+                Desa, Kecamatan
+              </th>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '10%' }}
+              >
+                Status
+              </th>
+              <th
+                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
+                style={{ width: '15%' }}
+              >
+                Aksi
+              </th>
             </tr>
-          ) : (
-            data.map((berkas, index) => (
-              <tr key={berkas.id} className="hover:bg-blue-50 transition-colors duration-150">
-                <td
-                  className="px-3 py-2.5 whitespace-nowrap text-xs font-semibold text-gray-900"
-                  style={{ width: '5%' }}
-                >
-                  {index + 1}
-                </td>
-                <td
-                  className="px-3 py-2.5 text-xs font-medium text-gray-900"
-                  style={{ width: '11%' }}
-                >
-                  <div className="truncate" title={berkas.nomor}>
-                    {berkas.nomor}
-                  </div>
-                </td>
-                <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
-                  <div className="truncate" title={berkas.namaPemohon || '-'}>
-                    {berkas.namaPemohon || '-'}
-                  </div>
-                </td>
-                <td
-                  className="px-3 py-2.5 text-xs text-gray-600 whitespace-nowrap"
-                  style={{ width: '11%' }}
-                >
-                  {formatDate(berkas.tanggalBerkas)}
-                </td>
-                <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
-                  <div className="truncate" title={berkas.kegiatan || '-'}>
-                    {berkas.kegiatan || '-'}
-                  </div>
-                </td>
-                <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
-                  <div
-                    className="truncate"
-                    title={`${berkas.desa || '-'}, ${berkas.kecamatan || '-'}`}
-                  >
-                    <span className="block font-medium text-xs">{berkas.desa || '-'}</span>
-                    <span className="block text-[10px] text-gray-500">
-                      {berkas.kecamatan || '-'}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap" style={{ width: '10%' }}>
-                  <div className="flex flex-col gap-0.5">
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(
-                        berkas.status
-                      )}`}
-                    >
-                      {getStatusLabel(berkas.status)}
-                    </span>
-                    {berkas.isClosed && (
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
-                        🔒 Ditutup
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-3 py-2.5 whitespace-nowrap" style={{ width: '15%' }}>
-                  <div className="flex gap-1">
-                    {showActions.view && (
-                      <button
-                        onClick={() => onView?.(berkas.id)}
-                        title="Lihat Detail"
-                        className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                    {showActions.close && !disableActionsForStatus.includes(berkas.status) && (
-                      <button
-                        onClick={() => onClose?.(berkas.id)}
-                        title="Tutup Berkas"
-                        className="p-1.5 rounded-lg text-orange-600 hover:bg-orange-100 hover:text-orange-700 transition-colors"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-3 py-8 text-center text-sm text-gray-500 font-medium">
+                  Tidak ada berkas ditemukan
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              data.map((berkas, index) => (
+                <tr key={berkas.id} className="hover:bg-blue-50 transition-colors duration-150">
+                  <td
+                    className="px-3 py-2.5 whitespace-nowrap text-xs font-semibold text-gray-900"
+                    style={{ width: '5%' }}
+                  >
+                    {index + 1}
+                  </td>
+                  <td
+                    className="px-3 py-2.5 text-xs font-medium text-gray-900"
+                    style={{ width: '11%' }}
+                  >
+                    <div className="truncate" title={berkas.nomor}>
+                      {berkas.nomor}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
+                    <div className="truncate" title={berkas.namaPemohon || '-'}>
+                      {berkas.namaPemohon || '-'}
+                    </div>
+                  </td>
+                  <td
+                    className="px-3 py-2.5 text-xs text-gray-600 whitespace-nowrap"
+                    style={{ width: '11%' }}
+                  >
+                    {formatDate(berkas.tanggalBerkas)}
+                  </td>
+                  <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
+                    <div className="truncate" title={berkas.kegiatan || '-'}>
+                      {berkas.kegiatan || '-'}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
+                    <div
+                      className="truncate"
+                      title={`${berkas.desa || '-'}, ${berkas.kecamatan || '-'}`}
+                    >
+                      <span className="block font-medium text-xs">{berkas.desa || '-'}</span>
+                      <span className="block text-[10px] text-gray-500">
+                        {berkas.kecamatan || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 whitespace-nowrap" style={{ width: '10%' }}>
+                    <StatusBadges berkas={berkas} />
+                  </td>
+                  <td className="px-3 py-2.5 whitespace-nowrap" style={{ width: '15%' }}>
+                    <ActionButtons berkas={berkas} />
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

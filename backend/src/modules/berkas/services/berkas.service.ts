@@ -75,6 +75,7 @@ export class BerkasService {
     tahunBerkas?: number;
     status?: string;
     includeClosed?: boolean;
+    revisionTarget?: string;
   }) {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
@@ -122,6 +123,12 @@ export class BerkasService {
       } else {
         where.status = statuses[0];
       }
+    }
+
+    // Revision target filter — only show revision berkas meant for a specific role
+    // lastRevisionFrom format: "DI_KKS|PETUGAS_UKUR" or "DI_KEPALA_SEKSI|PETUGAS_PEMETAAN"
+    if (filters?.revisionTarget) {
+      where.lastRevisionFrom = { contains: filters.revisionTarget };
     }
 
     // Execute queries in parallel for better performance

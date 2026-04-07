@@ -24,6 +24,7 @@ interface Berkas {
     nip: string;
   };
   revisionCount: number;
+  lastRevisionFrom?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -69,6 +70,11 @@ export default function PetugasPemetaanPage() {
         status: statusByTab,
       });
 
+      // Filter revision berkas hanya yang ditujukan ke PETUGAS_PEMETAAN
+      if (tab === 'revisi') {
+        params.append('revisionTarget', 'PETUGAS_PEMETAAN');
+      }
+
       if (filterParams.search) params.append('search', filterParams.search);
       if (filterParams.desa) params.append('desa', filterParams.desa);
       if (filterParams.kecamatan) params.append('kecamatan', filterParams.kecamatan);
@@ -88,12 +94,14 @@ export default function PetugasPemetaanPage() {
       } else {
         // Non-paginated response
         const allData = Array.isArray(data) ? data : [];
-        let filteredData = allData.filter(
-          (b: Berkas) =>
-            b.status === 'DI_PETUGAS_PEMETAAN' ||
-            b.status === 'REVISI_KKS' ||
-            b.status === 'REVISI_KASI'
-        );
+        let filteredData = allData.filter((b: Berkas) => {
+          if (b.status === 'DI_PETUGAS_PEMETAAN') return true;
+          if (b.status === 'REVISI_KKS' || b.status === 'REVISI_KASI') {
+            // Hanya tampilkan jika revision ditujukan ke PETUGAS_PEMETAAN
+            return b.lastRevisionFrom?.includes('PETUGAS_PEMETAAN') ?? false;
+          }
+          return false;
+        });
 
         // Apply client-side filtering
         if (filterParams.search) {
