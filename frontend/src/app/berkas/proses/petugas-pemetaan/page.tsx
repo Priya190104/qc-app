@@ -52,15 +52,21 @@ export default function PetugasPemetaanPage() {
   // Filter state
   const [filters, setFilters] = useState<BerkasFilterValues>({});
 
-  const fetchBerkas = async (page = 1, filterParams: BerkasFilterValues = {}) => {
+  const fetchBerkas = async (
+    page = 1,
+    filterParams: BerkasFilterValues = {},
+    tab: TabType = activeTab
+  ) => {
     try {
       setLoading(true);
       setError(null);
 
+      const statusByTab = tab === 'proses' ? 'DI_PETUGAS_PEMETAAN' : 'REVISI_KKS,REVISI_KASI';
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: itemsPerPage.toString(),
-        status: 'DI_PETUGAS_PEMETAAN,REVISI_KKS,REVISI_KASI',
+        status: statusByTab,
       });
 
       if (filterParams.search) params.append('search', filterParams.search);
@@ -137,19 +143,25 @@ export default function PetugasPemetaanPage() {
   };
 
   useEffect(() => {
-    fetchBerkas(1, filters);
+    fetchBerkas(1, filters, activeTab);
   }, []);
 
   const handleFilterChange = (newFilters: BerkasFilterValues) => {
     setFilters(newFilters);
     setCurrentPage(1);
-    fetchBerkas(1, newFilters);
+    fetchBerkas(1, newFilters, activeTab);
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchBerkas(page, filters);
+    fetchBerkas(page, filters, activeTab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    fetchBerkas(1, filters, tab);
   };
 
   const getStatusBadgeClass = (status: string) => {
@@ -174,15 +186,6 @@ export default function PetugasPemetaanPage() {
     }
   };
 
-  // Filter berkas based on active tab
-  const filteredBerkas = berkasList.filter((berkas) => {
-    if (activeTab === 'proses') {
-      return berkas.status === 'DI_PETUGAS_PEMETAAN';
-    } else {
-      return berkas.status === 'REVISI_KKS' || berkas.status === 'REVISI_KASI';
-    }
-  });
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -201,7 +204,7 @@ export default function PetugasPemetaanPage() {
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('proses')}
+            onClick={() => handleTabChange('proses')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-colors ${
               activeTab === 'proses'
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
@@ -210,11 +213,11 @@ export default function PetugasPemetaanPage() {
           >
             📋 Proses
             <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-              {berkasList.filter((b) => b.status === 'DI_PETUGAS_PEMETAAN').length}
+              {activeTab === 'proses' ? totalItems : ''}
             </span>
           </button>
           <button
-            onClick={() => setActiveTab('revisi')}
+            onClick={() => handleTabChange('revisi')}
             className={`flex-1 px-6 py-4 text-sm font-semibold transition-colors ${
               activeTab === 'revisi'
                 ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
@@ -223,10 +226,7 @@ export default function PetugasPemetaanPage() {
           >
             ↩ Revisi
             <span className="ml-2 px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
-              {
-                berkasList.filter((b) => b.status === 'REVISI_KKS' || b.status === 'REVISI_KASI')
-                  .length
-              }
+              {activeTab === 'revisi' ? totalItems : ''}
             </span>
           </button>
         </div>
@@ -300,7 +300,7 @@ export default function PetugasPemetaanPage() {
                   <p className="text-gray-600">Loading berkas...</p>
                 </td>
               </tr>
-            ) : filteredBerkas.length === 0 ? (
+            ) : berkasList.length === 0 ? (
               <tr>
                 <td colSpan={9} className="px-3 py-8 text-center text-sm text-gray-500 font-medium">
                   {activeTab === 'proses'
@@ -309,7 +309,7 @@ export default function PetugasPemetaanPage() {
                 </td>
               </tr>
             ) : (
-              filteredBerkas.map((berkas, index) => (
+              berkasList.map((berkas, index) => (
                 <tr key={berkas.id} className="hover:bg-blue-50 transition-colors duration-150">
                   <td
                     className="px-3 py-2.5 whitespace-nowrap text-xs font-semibold text-gray-900"

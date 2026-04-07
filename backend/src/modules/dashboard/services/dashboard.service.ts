@@ -124,28 +124,52 @@ export class DashboardService {
     // Count berkas for each petugas ukur and pemetaan simultaneously
     const [petugasUkurStats, petugasPemetaanStats] = await Promise.all([
       Promise.all(
-        petugasUkur.map(async (petugas) => ({
-          id: petugas.id,
-          nama: petugas.nama,
-          nip: petugas.nip,
-          departemen: 'PETUGAS_UKUR',
-          jumlahProses: await this.prisma.berkas.count({
-            where: { petugasUkurId: petugas.id, status: BerkasStatus.DI_PETUGAS_UKUR },
-          }),
-          jumlahRevisi: 0,
-        }))
+        petugasUkur.map(async (petugas) => {
+          const [jumlahProses, jumlahRevisi] = await Promise.all([
+            this.prisma.berkas.count({
+              where: { petugasUkurId: petugas.id, status: BerkasStatus.DI_PETUGAS_UKUR },
+            }),
+            this.prisma.berkas.count({
+              where: {
+                petugasUkurId: petugas.id,
+                status: { in: [BerkasStatus.REVISI_KKS, BerkasStatus.REVISI_KASI] },
+                lastRevisionFrom: { endsWith: '|PETUGAS_UKUR' },
+              },
+            }),
+          ]);
+          return {
+            id: petugas.id,
+            nama: petugas.nama,
+            nip: petugas.nip,
+            departemen: 'PETUGAS_UKUR',
+            jumlahProses,
+            jumlahRevisi,
+          };
+        })
       ),
       Promise.all(
-        petugasPemetaan.map(async (petugas) => ({
-          id: petugas.id,
-          nama: petugas.nama,
-          nip: petugas.nip,
-          departemen: 'PETUGAS_PEMETAAN',
-          jumlahProses: await this.prisma.berkas.count({
-            where: { petugasPemetaanId: petugas.id, status: BerkasStatus.DI_PETUGAS_PEMETAAN },
-          }),
-          jumlahRevisi: 0,
-        }))
+        petugasPemetaan.map(async (petugas) => {
+          const [jumlahProses, jumlahRevisi] = await Promise.all([
+            this.prisma.berkas.count({
+              where: { petugasPemetaanId: petugas.id, status: BerkasStatus.DI_PETUGAS_PEMETAAN },
+            }),
+            this.prisma.berkas.count({
+              where: {
+                petugasPemetaanId: petugas.id,
+                status: { in: [BerkasStatus.REVISI_KKS, BerkasStatus.REVISI_KASI] },
+                lastRevisionFrom: { endsWith: '|PETUGAS_PEMETAAN' },
+              },
+            }),
+          ]);
+          return {
+            id: petugas.id,
+            nama: petugas.nama,
+            nip: petugas.nip,
+            departemen: 'PETUGAS_PEMETAAN',
+            jumlahProses,
+            jumlahRevisi,
+          };
+        })
       ),
     ]);
 
@@ -226,8 +250,26 @@ export class DashboardService {
 
     const berkasList = await this.prisma.berkas.findMany({
       where: isUkur
-        ? { petugasUkurId: petugasId, status: BerkasStatus.DI_PETUGAS_UKUR }
-        : { petugasPemetaanId: petugasId, status: BerkasStatus.DI_PETUGAS_PEMETAAN },
+        ? {
+            petugasUkurId: petugasId,
+            OR: [
+              { status: BerkasStatus.DI_PETUGAS_UKUR },
+              {
+                status: { in: [BerkasStatus.REVISI_KKS, BerkasStatus.REVISI_KASI] },
+                lastRevisionFrom: { endsWith: '|PETUGAS_UKUR' },
+              },
+            ],
+          }
+        : {
+            petugasPemetaanId: petugasId,
+            OR: [
+              { status: BerkasStatus.DI_PETUGAS_PEMETAAN },
+              {
+                status: { in: [BerkasStatus.REVISI_KKS, BerkasStatus.REVISI_KASI] },
+                lastRevisionFrom: { endsWith: '|PETUGAS_PEMETAAN' },
+              },
+            ],
+          },
       select: {
         id: true,
         nomor: true,
@@ -244,7 +286,10 @@ export class DashboardService {
       nomor: b.nomor,
       namaPemohon: b.namaPemohon || '-',
       kegiatan: b.kegiatan || '-',
-      jenis: 'Proses',
+      jenis:
+        b.status === BerkasStatus.DI_PETUGAS_UKUR || b.status === BerkasStatus.DI_PETUGAS_PEMETAAN
+          ? 'Proses'
+          : 'Revisi',
     }));
 
     return { data: result, total: result.length };

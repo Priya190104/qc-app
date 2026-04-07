@@ -16,6 +16,11 @@ export class UpdateUserDto {
   phoneNumber?: string;
 
   @IsOptional()
+  @IsString()
+  @MinLength(8)
+  password?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 

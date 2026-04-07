@@ -122,6 +122,12 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
+    // Hash password if provided
+    let hashedPassword: string | undefined;
+    if (updateUserDto.password) {
+      hashedPassword = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
     // Update user and roles
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -130,6 +136,7 @@ export class UserService {
         lastName: updateUserDto.lastName,
         phoneNumber: updateUserDto.phoneNumber,
         isActive: updateUserDto.isActive,
+        ...(hashedPassword && { password: hashedPassword }),
         roles: updateUserDto.roleIds
           ? {
               deleteMany: {}, // Delete all current roles
