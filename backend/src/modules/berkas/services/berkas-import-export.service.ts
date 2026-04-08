@@ -83,6 +83,14 @@ export class BerkasImportExportService {
           petugasKKS: {
             select: { nama: true, nip: true },
           },
+          history: {
+            include: {
+              User: {
+                select: { firstName: true, lastName: true },
+              },
+            },
+            orderBy: { changedAt: 'asc' },
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -135,6 +143,61 @@ export class BerkasImportExportService {
       const ws = XLSX.utils.json_to_sheet(excelData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Data Berkas');
+
+      // ── Sheet 2: History Berkas ──────────────────────────────────────
+      const historyData: Record<string, any>[] = [];
+      berkasList.forEach((berkas) => {
+        if (berkas.history && berkas.history.length > 0) {
+          berkas.history.forEach((h) => {
+            historyData.push({
+              'No. Berkas': berkas.nomor,
+              'Nama Pemohon': berkas.namaPemohon || '',
+              'Status Lama': h.oldStatus || '-',
+              'Status Baru': h.newStatus || '-',
+              Alasan: h.reason || '',
+              'Diubah Oleh': h.User ? `${h.User.firstName} ${h.User.lastName}`.trim() : '',
+              'Tanggal Perubahan': new Date(h.changedAt).toLocaleString('id-ID'),
+            });
+          });
+        }
+      });
+
+      if (historyData.length > 0) {
+        const wsHistory = XLSX.utils.json_to_sheet(historyData);
+        XLSX.utils.book_append_sheet(wb, wsHistory, 'History Berkas');
+
+        const historyColWidths = [
+          { wch: 15 }, // No. Berkas
+          { wch: 22 }, // Nama Pemohon
+          { wch: 28 }, // Status Lama
+          { wch: 28 }, // Status Baru
+          { wch: 35 }, // Alasan
+          { wch: 22 }, // Diubah Oleh
+          { wch: 22 }, // Tanggal Perubahan
+        ];
+        wsHistory['!cols'] = historyColWidths;
+
+        // Style header history sheet
+        const historyHeaders = Object.keys(historyData[0]);
+        for (let i = 0; i < historyHeaders.length; i++) {
+          const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
+          if (wsHistory[cellRef]) {
+            wsHistory[cellRef].s = {
+              font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+              fill: { fgColor: { rgb: '2E7D32' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              border: {
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } },
+                top: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+              },
+            };
+          }
+        }
+        wsHistory['!freeze'] = { xSplit: 0, ySplit: 1 };
+      }
+      // ── End Sheet 2 ─────────────────────────────────────────────────
 
       // Set column widths
       const columnWidths = [

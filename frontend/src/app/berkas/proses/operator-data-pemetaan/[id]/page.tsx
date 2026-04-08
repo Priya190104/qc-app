@@ -127,9 +127,13 @@ export default function UpdateBerkasDataPemetaanPage() {
     const fetchPetugas = async () => {
       try {
         setLoadingPetugas(true);
-        const response = await apiClient.get<ApiResponse<{ data: Petugas[] }>>(
-          '/petugas?departemen=Petugas Pemetaan&isActive=true'
-        );
+        const response = await apiClient.get<ApiResponse<{ data: Petugas[] }>>('/petugas', {
+          params: {
+            departemen: 'Petugas Pemetaan',
+            isActive: true,
+            limit: 100,
+          },
+        });
         setPetugasList(response.data?.data?.data || []);
       } catch (err: any) {
         console.error('Failed to load petugas:', err);

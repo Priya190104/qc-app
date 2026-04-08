@@ -113,6 +113,7 @@ export default function UpdateBerkasDataUkurPage() {
   const [berkas, setBerkas] = useState<Berkas | null>(null);
   const [petugasList, setPetugasList] = useState<Petugas[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingPetugas, setLoadingPetugas] = useState(false);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,40 +128,22 @@ export default function UpdateBerkasDataUkurPage() {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchBerkas = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch berkas details
         const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
         const berkasData = berkasResponse.data?.data;
 
-        console.log('📥 Berkas Response:', berkasResponse.data);
-        console.log('📦 Berkas Data:', berkasData);
-        console.log('📅 tanggalBerkas:', berkasData?.tanggalBerkas);
-
         if (berkasData) {
           setBerkas(berkasData);
-          // Populate form with existing data
           setFormData({
             petugasUkurId: berkasData.petugasUkurId || '',
             noSTP: berkasData.noSTP || '',
             tglSTP: formatDateForInput(berkasData.tglSTP),
             noSHATNIBEL: berkasData.noSHATNIBEL || '',
           });
-        }
-
-        // Fetch petugas list - filter hanya Petugas Ukur
-        const petugasResponse = await apiClient.get<ApiResponse<any>>('/petugas', {
-          params: {
-            departemen: 'Petugas Ukur',
-            limit: 100, // Ambil semua petugas ukur
-          },
-        });
-        const petugasData = petugasResponse.data?.data?.data || petugasResponse.data?.data;
-        if (Array.isArray(petugasData)) {
-          setPetugasList(petugasData);
         }
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
@@ -170,8 +153,30 @@ export default function UpdateBerkasDataUkurPage() {
       }
     };
 
+    const fetchPetugas = async () => {
+      try {
+        setLoadingPetugas(true);
+        const petugasResponse = await apiClient.get<ApiResponse<any>>('/petugas', {
+          params: {
+            departemen: 'Petugas Ukur',
+            isActive: true,
+            limit: 100,
+          },
+        });
+        const petugasData = petugasResponse.data?.data?.data || [];
+        if (Array.isArray(petugasData)) {
+          setPetugasList(petugasData);
+        }
+      } catch (err: any) {
+        console.error('Failed to load petugas ukur:', err);
+      } finally {
+        setLoadingPetugas(false);
+      }
+    };
+
     if (id) {
-      fetchData();
+      fetchBerkas();
+      fetchPetugas();
     }
   }, [id]);
 
@@ -354,15 +359,23 @@ export default function UpdateBerkasDataUkurPage() {
                     value={formData.petugasUkurId}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    disabled={loadingPetugas}
                     required
                   >
-                    <option value="">Pilih Petugas Ukur</option>
+                    <option value="">
+                      {loadingPetugas ? 'Memuat...' : '-- Pilih Petugas Ukur --'}
+                    </option>
                     {petugasList.map((petugas) => (
                       <option key={petugas.id} value={petugas.id}>
                         {petugas.nama} ({petugas.nip})
                       </option>
                     ))}
                   </select>
+                  {petugasList.length === 0 && !loadingPetugas && (
+                    <p className="text-sm text-yellow-600 mt-1">
+                      ⚠️ Tidak ada petugas ukur aktif tersedia
+                    </p>
+                  )}
                 </div>
 
                 {/* No. STP */}
