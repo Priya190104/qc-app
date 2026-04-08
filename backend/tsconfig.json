@@ -18,7 +18,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
     "types": ["node", "jest"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
