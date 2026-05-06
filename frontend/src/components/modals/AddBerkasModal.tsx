@@ -455,8 +455,8 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
       if (!formData.tanggalBerkas) {
         throw new Error('Tanggal berkas harus diisi');
       }
-      if (!formData.noBerkas.trim()) {
-        throw new Error('No. Berkas harus diisi');
+      if (!formData.noBerkas || parseInt(formData.noBerkas) <= 0) {
+        throw new Error('No. Berkas harus diisi dengan angka positif');
       }
       if (!formData.tahunBerkas) {
         throw new Error('Tahun berkas harus diisi');
@@ -581,10 +581,12 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
             {/* No. Berkas */}
             <Input
               label="No. Berkas"
-              type="text"
+              type="number"
               value={formData.noBerkas}
               onChange={(e) => handleInputChange(e, 'noBerkas')}
               placeholder="Masukkan nomor berkas"
+              min="1"
+              inputMode="numeric"
               required
             />
 

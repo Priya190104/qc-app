@@ -1,8 +1,20 @@
-import { IsString, IsInt, IsOptional, IsISO8601, IsUUID, IsNumber, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsISO8601,
+  IsUUID,
+  IsNumber,
+  IsEnum,
+  Matches,
+} from 'class-validator';
 import { BerkasStatus } from '@prisma/client';
 
 export class CreateBerkasDto {
   @IsString()
+  @Matches(/^\d+\/\d{4}$/, {
+    message: 'nomor harus dalam format: angka/tahun (contoh: 123/2026)',
+  })
   nomor!: string;
 
   @IsOptional()
