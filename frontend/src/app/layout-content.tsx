@@ -7,6 +7,9 @@ import Sidebar from '@/components/layout/Navbar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { useAuthStore } from '@/stores';
+import { useUmuxTrigger } from '@/hooks/useUmuxTrigger';
+import UmuxModal from '@/components/umux/UmuxModal';
+import { LoadingSpinner } from '@/components/ui';
 
 interface RootLayoutContentProps {
   children: React.ReactNode;
@@ -22,6 +25,8 @@ export default function RootLayoutContent({ children }: RootLayoutContentProps) 
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { sidebarCollapsed } = useLayoutStore();
+  const { shouldShow: showUmux, dismiss: dismissUmux } = useUmuxTrigger();
+  const [showManualUmux, setShowManualUmux] = useState(false);
 
   // Public routes that don't need sidebar
   const publicRoutes = ['/auth/login', '/auth/register', '/'];
@@ -88,14 +93,7 @@ export default function RootLayoutContent({ children }: RootLayoutContentProps) 
 
   // Prevent hydration mismatch by waiting for client-side check
   if (isAuthenticated === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⌛</div>
-          <p className="text-gray-600">Loading application...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullPage size="lg" label="Memuat aplikasi..." />;
   }
 
   const showSidebar = isAuthenticated && !publicRoutes.includes(pathname);
@@ -105,7 +103,7 @@ export default function RootLayoutContent({ children }: RootLayoutContentProps) 
       {showSidebar ? (
         <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
           {/* Sidebar */}
-          <Sidebar />
+          <Sidebar onOpenSurvey={() => setShowManualUmux(true)} />
 
           {/* Main Content Area - Responsive */}
           <main
@@ -115,6 +113,16 @@ export default function RootLayoutContent({ children }: RootLayoutContentProps) 
           >
             <div className="max-w-7xl mx-auto w-full">{children}</div>
           </main>
+
+          {/* UMUX evaluation modal — shown only when all trigger conditions are met */}
+          {(showUmux || showManualUmux) && (
+            <UmuxModal
+              onClose={() => {
+                dismissUmux();
+                setShowManualUmux(false);
+              }}
+            />
+          )}
         </div>
       ) : (
         // Public routes without sidebar

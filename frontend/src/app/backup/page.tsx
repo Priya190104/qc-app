@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Alert } from '@/components/ui';
+import { Button, Alert, PageHeader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 
 interface BackupLog {
@@ -31,6 +31,51 @@ interface Pagination {
   limit: number;
   total: number;
   totalPages: number;
+}
+
+// â”€â”€â”€ Sub-components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+type Health = 'good' | 'warning' | 'stale' | 'failed' | 'none' | null;
+
+function HealthDot({ health }: { health: Health }) {
+  if (health === null)
+    return <span className="w-3 h-3 rounded-full bg-gray-200 animate-pulse shrink-0" />;
+  const colorMap: Record<string, string> = {
+    good: 'bg-emerald-500',
+    warning: 'bg-amber-500',
+    stale: 'bg-orange-500',
+    failed: 'bg-red-500',
+    none: 'bg-gray-300',
+  };
+  return (
+    <span className="relative flex w-3 h-3 shrink-0">
+      {health === 'good' && (
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+      )}
+      <span className={`relative inline-flex rounded-full w-3 h-3 ${colorMap[health]}`} />
+    </span>
+  );
+}
+
+function MetricItem({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number | null;
+  color: string;
+}) {
+  return (
+    <div className="px-5 text-center first:pl-0 last:pr-0">
+      {value === null ? (
+        <div className="h-5 w-8 bg-gray-200 rounded animate-pulse mx-auto mb-1" />
+      ) : (
+        <p className={`text-lg font-semibold leading-none ${color}`}>{value}</p>
+      )}
+      <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">{label}</p>
+    </div>
+  );
 }
 
 export default function BackupPage() {
@@ -81,9 +126,9 @@ export default function BackupPage() {
     fetchBackups(page);
   }, [fetchStats, fetchBackups, page]);
 
-  // ────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Actions
-  // ────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const handleManualBackup = async () => {
     setActionLoading('backup');
@@ -111,7 +156,7 @@ export default function BackupPage() {
       const d = res.data?.data ?? res.data;
       showAlert(
         'success',
-        `Cleanup selesai — ${d?.deletedBerkas ?? 0} berkas dihapus, ${d?.deletedBackups ?? 0} backup dihapus`
+        `Cleanup selesai â€” ${d?.deletedBerkas ?? 0} berkas dihapus, ${d?.deletedBackups ?? 0} backup dihapus`
       );
       await Promise.all([fetchStats(), fetchBackups(1)]);
       setPage(1);
@@ -152,9 +197,9 @@ export default function BackupPage() {
     }
   };
 
-  // ────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Helpers
-  // ────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleString('id-ID', {
@@ -167,151 +212,288 @@ export default function BackupPage() {
     return diffMs > 2 * 365 * 24 * 60 * 60 * 1000;
   };
 
-  // ────────────────────────────────────────────────────────────
-  // Render
-  // ────────────────────────────────────────────────────────────
+  // Compute system health from latest backup
+  const systemHealth: Health = (() => {
+    if (statsLoading) return null;
+    if (!stats?.latestBackup) return 'none';
+    if (stats.latestBackup.status === 'FAILED') return 'failed';
+    const diffDays = (Date.now() - new Date(stats.latestBackup.createdAt).getTime()) / 86400000;
+    if (diffDays <= 35) return 'good';
+    if (diffDays <= 90) return 'warning';
+    return 'stale';
+  })();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Backup Data</h1>
-          <p className="text-gray-600 mt-1">Backup otomatis setiap bulan • Retensi data 2 tahun</p>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setShowCleanupConfirm(true)}
-            disabled={!!actionLoading}
-            isLoading={actionLoading === 'cleanup'}
-          >
-            🗑️ Jalankan Cleanup
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleManualBackup}
-            disabled={!!actionLoading}
-            isLoading={actionLoading === 'backup'}
-          >
-            💾 Backup Manual
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Backup Data"
+        description="Backup otomatis setiap bulan Â· Retensi data 2 tahun"
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCleanupConfirm(true)}
+              disabled={!!actionLoading}
+              isLoading={actionLoading === 'cleanup'}
+            >
+              Jalankan Cleanup
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleManualBackup}
+              disabled={!!actionLoading}
+              isLoading={actionLoading === 'backup'}
+            >
+              {actionLoading === 'backup' ? 'Memproses Backupâ€¦' : 'Backup Manual'}
+            </Button>
+          </>
+        }
+      />
 
-      {/* Alert */}
       {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          {
-            label: 'Total Backup',
-            value: statsLoading ? '...' : String(stats?.totalBackups ?? 0),
-            icon: '🗄️',
-            color: 'text-blue-600',
-          },
-          {
-            label: 'Berhasil',
-            value: statsLoading ? '...' : String(stats?.successBackups ?? 0),
-            icon: '✅',
-            color: 'text-green-600',
-          },
-          {
-            label: 'Gagal',
-            value: statsLoading ? '...' : String(stats?.failedBackups ?? 0),
-            icon: '❌',
-            color: 'text-red-600',
-          },
-          {
-            label: 'Berkas Eligible Cleanup',
-            value: statsLoading ? '...' : String(stats?.oldBerkasEligibleForDeletion ?? 0),
-            icon: '📋',
-            color: 'text-amber-600',
-          },
-        ].map((card) => (
-          <div key={card.label} className="bg-white rounded-lg shadow-sm p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
-                  {card.label}
-                </p>
-                <p className={`text-2xl font-bold mt-1 ${card.color}`}>{card.value}</p>
-              </div>
-              <span className="text-3xl">{card.icon}</span>
+      {/* â”€â”€ System Status Bar â”€â”€ */}
+      <div className="bg-white border border-gray-200 rounded-lg px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-5">
+          {/* Health indicator */}
+          <div className="flex items-center gap-3">
+            <HealthDot health={systemHealth} />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                {systemHealth === null && 'Memuat status sistemâ€¦'}
+                {systemHealth === 'good' && 'Sistem Terlindungi'}
+                {systemHealth === 'warning' && 'Backup Sudah Lama'}
+                {systemHealth === 'stale' && 'Backup Sangat Lama'}
+                {systemHealth === 'failed' && 'Backup Terakhir Gagal'}
+                {systemHealth === 'none' && 'Belum Ada Backup'}
+              </p>
+              <p className="text-xs text-gray-500">
+                {stats?.latestBackup
+                  ? `Backup terakhir: ${formatDate(stats.latestBackup.createdAt)}`
+                  : 'Buat backup pertama untuk memulai perlindungan data'}
+              </p>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Info Kebijakan */}
-      <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 text-sm text-blue-800 space-y-1">
-        <p className="font-semibold text-blue-900">ℹ️ Kebijakan Retensi Data</p>
-        <p>
-          • <span className="font-medium">Berkas dihapus otomatis</span> jika sudah lebih dari 2
-          tahun sejak <span className="font-medium">tanggal berkas ditambahkan</span> ke sistem
-          (kolom <code className="bg-blue-100 px-1 rounded">createdAt</code>), dan statusnya{' '}
-          <span className="font-medium">SELESAI atau DITUTUP</span>. Berkas yang masih dalam proses
-          tidak akan dihapus.
-        </p>
-        <p>
-          • <span className="font-medium">File backup dihapus otomatis</span> jika sudah lebih dari
-          2 tahun sejak tanggal backup dibuat.
-        </p>
-        <p>
-          • <span className="font-medium">Jadwal otomatis:</span>{' '}
-          {stats?.nextScheduled ?? 'Tanggal 1 setiap bulan, pukul 02:00'}
-        </p>
-      </div>
-
-      {/* Backup terbaru */}
-      {stats?.latestBackup && (
-        <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-400">
-          <p className="font-semibold text-gray-900 mb-2">📦 Backup Terakhir</p>
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-            <span>📄 {stats.latestBackup.filename}</span>
-            <span>📅 {formatDate(stats.latestBackup.createdAt)}</span>
-            <span>📋 {stats.latestBackup.totalBerkas} berkas</span>
+          {/* Metric strip */}
+          <div className="flex items-center divide-x divide-gray-200">
+            <MetricItem
+              label="Total Backup"
+              value={statsLoading ? null : (stats?.totalBackups ?? 0)}
+              color="text-gray-900"
+            />
+            <MetricItem
+              label="Berhasil"
+              value={statsLoading ? null : (stats?.successBackups ?? 0)}
+              color="text-emerald-700"
+            />
+            <MetricItem
+              label="Gagal"
+              value={statsLoading ? null : (stats?.failedBackups ?? 0)}
+              color={(stats?.failedBackups ?? 0) > 0 ? 'text-red-600' : 'text-gray-400'}
+            />
+            <MetricItem
+              label="Eligible Cleanup"
+              value={statsLoading ? null : (stats?.oldBerkasEligibleForDeletion ?? 0)}
+              color={
+                (stats?.oldBerkasEligibleForDeletion ?? 0) > 0 ? 'text-amber-600' : 'text-gray-400'
+              }
+            />
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Tabel Daftar Backup */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Riwayat Backup</h2>
-          <p className="text-sm text-gray-600">Daftar semua backup yang telah dibuat</p>
+      {/* â”€â”€ Latest Backup + Retention Policy â”€â”€ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Latest backup card â€” 2/3 width */}
+        <div className="lg:col-span-2">
+          {statsLoading ? (
+            <div className="bg-white border border-gray-200 rounded-lg p-5 animate-pulse space-y-3">
+              <div className="h-4 bg-gray-200 rounded w-1/3" />
+              <div className="h-3 bg-gray-200 rounded w-2/3" />
+              <div className="h-3 bg-gray-200 rounded w-1/2" />
+            </div>
+          ) : stats?.latestBackup ? (
+            <div
+              className={`bg-white border rounded-lg p-5 ${
+                stats.latestBackup.status === 'SUCCESS' ? 'border-emerald-200' : 'border-red-200'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 ${
+                        stats.latestBackup.status === 'SUCCESS' ? 'bg-emerald-500' : 'bg-red-500'
+                      }`}
+                    />
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Backup Terakhir
+                    </p>
+                  </div>
+                  <p className="font-mono text-sm font-medium text-gray-900 truncate">
+                    {stats.latestBackup.filename}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
+                    <span>{formatDate(stats.latestBackup.createdAt)}</span>
+                    <span>{stats.latestBackup.totalBerkas.toLocaleString('id-ID')} berkas</span>
+                    <span>
+                      {parseFloat(stats.latestBackup.fileSizeMB) >= 1
+                        ? `${stats.latestBackup.fileSizeMB} MB`
+                        : `${stats.latestBackup.fileSizeKB} KB`}
+                    </span>
+                  </div>
+                </div>
+                {stats.latestBackup.status === 'SUCCESS' && (
+                  <button
+                    onClick={() => handleDownload(stats.latestBackup!)}
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    Unduh untuk Restore
+                  </button>
+                )}
+              </div>
+              {stats.latestBackup.status === 'SUCCESS' && (
+                <p className="mt-3 text-xs text-gray-400 border-t border-gray-100 pt-3">
+                  Untuk memulihkan data, unduh file backup dan ikuti prosedur restore sistem sesuai
+                  panduan teknis.
+                </p>
+              )}
+              {stats.latestBackup.status === 'FAILED' && stats.latestBackup.errorMessage && (
+                <p className="mt-3 text-xs text-red-600 border-t border-red-100 pt-3 truncate">
+                  {stats.latestBackup.errorMessage}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white border border-dashed border-gray-200 rounded-lg p-5 text-center">
+              <p className="text-sm font-medium text-gray-500">Belum ada backup</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Klik &ldquo;Backup Manual&rdquo; untuk membuat backup pertama
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Retention policy â€” 1/3 width */}
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm">
+          <p className="font-semibold text-gray-800 mb-3 text-sm">Kebijakan Retensi Data</p>
+          <ul className="space-y-2 text-xs text-gray-600">
+            <li className="flex gap-2">
+              <span className="w-1 h-1 rounded-full bg-slate-400 shrink-0 mt-1.5" />
+              <span>
+                <span className="font-medium text-gray-700">Berkas</span> dihapus otomatis jika
+                lebih dari 2 tahun dan berstatus <span className="font-medium">SELESAI</span> atau{' '}
+                <span className="font-medium">DITUTUP</span>
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span className="w-1 h-1 rounded-full bg-slate-400 shrink-0 mt-1.5" />
+              <span>
+                <span className="font-medium text-gray-700">File backup</span> dihapus otomatis
+                setelah lebih dari 2 tahun
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span className="w-1 h-1 rounded-full bg-slate-400 shrink-0 mt-1.5" />
+              <span>
+                <span className="font-medium text-gray-700">Jadwal otomatis:</span>{' '}
+                {stats?.nextScheduled ?? 'Tanggal 1 setiap bulan, pukul 02:00'}
+              </span>
+            </li>
+          </ul>
+          {(stats?.oldBerkasEligibleForDeletion ?? 0) > 0 && (
+            <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800">
+              <span className="font-semibold">{stats!.oldBerkasEligibleForDeletion} berkas</span>{' '}
+              siap dihapus saat cleanup dijalankan
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* â”€â”€ Backup History Table â”€â”€ */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Riwayat Backup</h2>
+            {!loading && pagination && (
+              <p className="text-xs text-gray-400 mt-0.5">{pagination.total} backup tersimpan</p>
+            )}
+          </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
-            <div className="text-center">
-              <div className="animate-spin text-4xl mb-2">⌛</div>
-              <p>Memuat data...</p>
-            </div>
+          <div className="divide-y divide-gray-100">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="px-5 py-3 flex items-center gap-4 animate-pulse">
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3.5 bg-gray-200 rounded w-64" />
+                  <div className="h-3 bg-gray-200 rounded w-36" />
+                </div>
+                <div className="h-5 bg-gray-200 rounded w-16" />
+                <div className="h-5 bg-gray-200 rounded w-20" />
+              </div>
+            ))}
           </div>
         ) : backups.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
-            <div className="text-center">
-              <div className="text-4xl mb-2">🗄️</div>
-              <p className="font-medium">Belum ada data backup.</p>
-              <p className="text-sm mt-1">
-                Klik &ldquo;Backup Manual&rdquo; untuk membuat backup sekarang.
-              </p>
-            </div>
+          <div className="py-14 text-center">
+            <svg
+              className="mx-auto w-9 h-9 text-gray-300 mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+              />
+            </svg>
+            <p className="text-sm font-medium text-gray-500">Belum ada data backup</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Klik &ldquo;Backup Manual&rdquo; untuk membuat backup sekarang
+            </p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200">
-                    <th className="px-6 py-3 font-semibold">Nama File</th>
-                    <th className="px-6 py-3 font-semibold">Tanggal Backup</th>
-                    <th className="px-6 py-3 font-semibold">Jumlah Berkas</th>
-                    <th className="px-6 py-3 font-semibold">Ukuran</th>
-                    <th className="px-6 py-3 font-semibold">Status</th>
-                    <th className="px-6 py-3 font-semibold text-right">Aksi</th>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Nama File
+                    </th>
+                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                      Tanggal
+                    </th>
+                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Berkas
+                    </th>
+                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Ukuran
+                    </th>
+                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Status
+                    </th>
+                    <th className="px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -320,68 +502,74 @@ export default function BackupPage() {
                     return (
                       <tr
                         key={backup.id}
-                        className={`hover:bg-gray-50 transition-colors ${old ? 'opacity-60' : ''}`}
+                        className={`transition-colors hover:bg-gray-50/70 ${
+                          old ? 'bg-amber-50/30' : ''
+                        }`}
                       >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-400">📄</span>
-                            <div>
-                              <p className="font-medium text-gray-900 break-all">
-                                {backup.filename}
+                        <td className="px-5 py-3">
+                          <div className="min-w-0">
+                            <p className="font-mono text-xs font-medium text-gray-900 truncate max-w-xs">
+                              {backup.filename}
+                            </p>
+                            {old && (
+                              <p className="text-xs text-amber-600 mt-0.5">
+                                Akan dihapus saat cleanup (lebih dari 2 tahun)
                               </p>
-                              {old && (
-                                <p className="text-xs text-red-500">
-                                  ⚠️ Akan dihapus saat cleanup ({'>'} 2 tahun)
-                                </p>
-                              )}
-                            </div>
+                            )}
+                            {backup.status === 'FAILED' && backup.errorMessage && (
+                              <p className="text-xs text-red-500 mt-0.5 max-w-xs truncate">
+                                {backup.errorMessage}
+                              </p>
+                            )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                        <td className="px-5 py-3 text-xs text-gray-600 whitespace-nowrap">
                           {formatDate(backup.createdAt)}
                         </td>
-                        <td className="px-6 py-4 text-gray-600">{backup.totalBerkas}</td>
-                        <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                        <td className="px-5 py-3 text-xs text-gray-600 tabular-nums">
+                          {backup.totalBerkas.toLocaleString('id-ID')}
+                        </td>
+                        <td className="px-5 py-3 text-xs text-gray-600 whitespace-nowrap tabular-nums">
                           {parseFloat(backup.fileSizeMB) >= 1
                             ? `${backup.fileSizeMB} MB`
                             : `${backup.fileSizeKB} KB`}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-5 py-3">
                           <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium ${
                               backup.status === 'SUCCESS'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
+                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                                : 'bg-red-50 text-red-700 ring-1 ring-red-200'
                             }`}
                           >
-                            {backup.status === 'SUCCESS' ? '✅ Berhasil' : '❌ Gagal'}
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                backup.status === 'SUCCESS' ? 'bg-emerald-500' : 'bg-red-500'
+                              }`}
+                            />
+                            {backup.status === 'SUCCESS' ? 'Berhasil' : 'Gagal'}
                           </span>
-                          {backup.status === 'FAILED' && backup.errorMessage && (
-                            <p className="text-xs text-red-500 mt-1 max-w-xs truncate">
-                              {backup.errorMessage}
-                            </p>
-                          )}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex justify-end gap-2">
+                        <td className="px-5 py-3">
+                          <div className="flex justify-end items-center gap-1">
                             {backup.status === 'SUCCESS' && (
-                              <Button
-                                variant="outline"
-                                size="sm"
+                              <button
                                 onClick={() => handleDownload(backup)}
+                                className="px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                               >
-                                ⬇️ Unduh
-                              </Button>
+                                Unduh
+                              </button>
                             )}
-                            <Button
-                              variant="danger"
-                              size="sm"
+                            {backup.status === 'SUCCESS' && (
+                              <span className="w-px h-3.5 bg-gray-200" aria-hidden="true" />
+                            )}
+                            <button
                               onClick={() => setShowDeleteConfirm(backup)}
                               disabled={actionLoading === backup.id}
-                              isLoading={actionLoading === backup.id}
+                              className="px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:opacity-40"
                             >
-                              🗑️ Hapus
-                            </Button>
+                              {actionLoading === backup.id ? 'Menghapusâ€¦' : 'Hapus'}
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -393,32 +581,30 @@ export default function BackupPage() {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-                <p className="text-sm text-gray-500">
-                  Menampilkan {(pagination.page - 1) * pagination.limit + 1}–
+              <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+                <p className="text-xs text-gray-400">
+                  {(pagination.page - 1) * pagination.limit + 1}â€“
                   {Math.min(pagination.page * pagination.limit, pagination.total)} dari{' '}
                   {pagination.total} backup
                 </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                <div className="flex items-center gap-1">
+                  <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
+                    className="px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded disabled:opacity-40 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    ← Sebelumnya
-                  </Button>
-                  <span className="px-3 py-1 text-sm text-gray-600 self-center">
+                    Sebelumnya
+                  </button>
+                  <span className="px-2.5 py-1 text-xs text-gray-500 tabular-nums">
                     {pagination.page} / {pagination.totalPages}
                   </span>
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <button
                     onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                     disabled={page === pagination.totalPages}
+                    className="px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded disabled:opacity-40 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    Berikutnya →
-                  </Button>
+                    Berikutnya
+                  </button>
                 </div>
               </div>
             )}
@@ -426,66 +612,105 @@ export default function BackupPage() {
         )}
       </div>
 
-      {/* Modal Konfirmasi Hapus Backup */}
+      {/* â”€â”€ Modal: Hapus Backup â”€â”€ */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowDeleteConfirm(null)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 z-10">
-            <h3 className="text-lg font-bold text-gray-900">Hapus Backup?</h3>
-            <p className="text-sm text-gray-600">
-              File <span className="font-medium">{showDeleteConfirm.filename}</span> akan dihapus
-              secara permanen dari server dan tidak dapat dipulihkan.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4 z-10">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0 mt-0.5">
+                <svg
+                  className="w-4 h-4 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Hapus Backup?</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  File <span className="font-mono font-medium">{showDeleteConfirm.filename}</span>{' '}
+                  akan dihapus permanen dari server dan tidak dapat dipulihkan.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-1">
+              <Button variant="secondary" size="sm" onClick={() => setShowDeleteConfirm(null)}>
                 Batal
               </Button>
-              <Button variant="danger" onClick={() => handleDelete(showDeleteConfirm)}>
-                Ya, Hapus
+              <Button variant="danger" size="sm" onClick={() => handleDelete(showDeleteConfirm)}>
+                Hapus Permanen
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Konfirmasi Cleanup */}
+      {/* â”€â”€ Modal: Jalankan Cleanup â”€â”€ */}
       {showCleanupConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowCleanupConfirm(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 z-10">
-            <h3 className="text-lg font-bold text-gray-900">Jalankan Cleanup?</h3>
-            <div className="text-sm text-gray-600 space-y-2">
-              <p>Proses ini akan:</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
-                <li>
-                  Menghapus berkas yang dibuat{' '}
-                  <span className="font-medium">lebih dari 2 tahun lalu</span> dengan status{' '}
-                  <span className="font-medium">SELESAI atau DITUTUP</span>
-                </li>
-                <li>
-                  Menghapus file backup yang dibuat{' '}
-                  <span className="font-medium">lebih dari 2 tahun lalu</span>
-                </li>
-              </ul>
-              {(stats?.oldBerkasEligibleForDeletion ?? 0) > 0 && (
-                <p className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
-                  ⚠️ Saat ini terdapat{' '}
-                  <span className="font-bold">{stats?.oldBerkasEligibleForDeletion}</span> berkas
-                  yang akan dihapus.
-                </p>
-              )}
+          <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4 z-10">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 mt-0.5">
+                <svg
+                  className="w-4 h-4 text-amber-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-gray-900">Jalankan Cleanup?</h3>
+                <div className="text-sm text-gray-600 mt-1 space-y-2">
+                  <p>Proses ini akan menghapus secara permanen:</p>
+                  <ul className="space-y-1.5 text-xs">
+                    <li className="flex gap-2">
+                      <span className="w-1 h-1 rounded-full bg-gray-400 shrink-0 mt-1.5" />
+                      <span>
+                        Berkas lebih dari 2 tahun berstatus <strong>SELESAI</strong> atau{' '}
+                        <strong>DITUTUP</strong>
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="w-1 h-1 rounded-full bg-gray-400 shrink-0 mt-1.5" />
+                      <span>File backup lebih dari 2 tahun</span>
+                    </li>
+                  </ul>
+                  {(stats?.oldBerkasEligibleForDeletion ?? 0) > 0 && (
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800">
+                      <strong>{stats!.oldBerkasEligibleForDeletion} berkas</strong> akan dihapus
+                      dalam proses ini
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => setShowCleanupConfirm(false)}>
+            <div className="flex justify-end gap-3 pt-1">
+              <Button variant="secondary" size="sm" onClick={() => setShowCleanupConfirm(false)}>
                 Batal
               </Button>
-              <Button variant="danger" onClick={handleCleanup}>
+              <Button variant="danger" size="sm" onClick={handleCleanup}>
                 Ya, Jalankan Cleanup
               </Button>
             </div>

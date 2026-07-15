@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Alert } from '@/components/ui';
+import { Button, Alert, PageHeader, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
+import type { ApiResponse } from '@/types';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 interface Berkas {
@@ -69,13 +70,6 @@ interface BerkasHistory {
   newStatus?: string;
   reason?: string;
   changedAt: string;
-}
-
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data?: T;
-  error?: string;
 }
 
 type TabType = 'validasi' | 'detail' | 'history' | 'catatan';
@@ -270,14 +264,7 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⌛</div>
-          <p className="text-gray-600">Loading data...</p>
-        </div>
-      </div>
-    );
+    return <SectionLoader />;
   }
 
   if (!berkas) {
@@ -293,14 +280,14 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/berkas/proses/petugas-pemetaan">
-          <Button variant="outline" size="sm">
-            ← Kembali
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Validasi Pemetaan Berkas</h1>
-      </div>
+      <PageHeader
+        title="Validasi Pemetaan Berkas"
+        breadcrumbs={[
+          { label: 'Berkas Dalam Proses', href: '/berkas/proses' },
+          { label: 'Petugas Pemetaan', href: '/berkas/proses/petugas-pemetaan' },
+          { label: 'Detail Berkas' },
+        ]}
+      />
 
       {/* Status Badge */}
       <div className="flex items-center gap-3">
@@ -756,3 +743,4 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
     </div>
   );
 }
+

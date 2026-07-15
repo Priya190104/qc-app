@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
+import { Modal, ModalHeader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 
 const STAGES_ORDER = [
@@ -540,6 +541,15 @@ export default function EditBerkasModal({
     }
   }, [formData.kecamatan]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
     field: string
@@ -619,178 +629,218 @@ export default function EditBerkasModal({
   const showHasilUkur = currentStageIndex >= STAGES_ORDER.indexOf('DI_PETUGAS_UKUR');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+    <Modal isOpen={true} onClose={onClose} titleId="edit-berkas-title" maxWidth="2xl">
+      <ModalHeader
+        id="edit-berkas-title"
+        title="Edit Berkas"
+        subtitle={`No. ${berkas.nomor}`}
+        onClose={onClose}
+      />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">✏️ Edit Berkas</h2>
-            <p className="text-sm text-gray-500 mt-1">No. {berkas.nomor}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+      {/* Body */}
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+        <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
           {error && <Alert type="error" message={error} />}
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-            ⚠️ Perubahan data berkas akan dicatat dalam riwayat sistem.
+          <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-sm text-amber-800">
+            <svg
+              className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+              />
+            </svg>
+            Perubahan data berkas akan dicatat dalam riwayat sistem.
           </div>
 
-          {/* Row 1: Kegiatan + Tanggal */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kegiatan <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.kegiatan}
-                onChange={(e) => handleInputChange(e, 'kegiatan')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                <option value="">-- Pilih Kegiatan --</option>
-                {kegiatanData.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tanggal Berkas <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={formData.tanggalBerkas}
-                onChange={(e) => handleInputChange(e, 'tanggalBerkas')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-          </div>
+          {/* Identitas & Lokasi */}
+          <fieldset>
+            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Identitas Berkas
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Kegiatan{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  value={formData.kegiatan}
+                  onChange={(e) => handleInputChange(e, 'kegiatan')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Kegiatan --</option>
+                  {kegiatanData.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Tanggal Berkas{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.tanggalBerkas}
+                  onChange={(e) => handleInputChange(e, 'tanggalBerkas')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                  required
+                />
+              </div>
 
-          {/* Row 2: Nama Pemohon + Tahun */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nama Pemohon <span className="text-red-500">*</span>
-              </label>
-              <Input
-                value={formData.namaPemohon}
-                onChange={(e) => handleInputChange(e, 'namaPemohon')}
-                placeholder="Nama lengkap pemohon"
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Nama Pemohon{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <Input
+                  value={formData.namaPemohon}
+                  onChange={(e) => handleInputChange(e, 'namaPemohon')}
+                  placeholder="Nama lengkap pemohon"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Tahun Berkas{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <Input
+                  type="number"
+                  value={formData.tahunBerkas}
+                  onChange={(e) => handleInputChange(e, 'tahunBerkas')}
+                  placeholder="Contoh: 2026"
+                  min={2000}
+                  max={2100}
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tahun Berkas <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="number"
-                value={formData.tahunBerkas}
-                onChange={(e) => handleInputChange(e, 'tahunBerkas')}
-                placeholder="Contoh: 2026"
-                min={2000}
-                max={2100}
-                required
-              />
-            </div>
-          </div>
+          </fieldset>
 
-          {/* Row 3: Kecamatan + Desa */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kecamatan <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.kecamatan}
-                onChange={(e) => handleInputChange(e, 'kecamatan')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                <option value="">-- Pilih Kecamatan --</option>
-                {kecamatanData.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama}
-                  </option>
-                ))}
-              </select>
+          <fieldset>
+            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Lokasi
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Kecamatan{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  value={formData.kecamatan}
+                  onChange={(e) => handleInputChange(e, 'kecamatan')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Kecamatan --</option>
+                  {kecamatanData.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Desa/Kelurahan{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  value={formData.desa}
+                  onChange={(e) => handleInputChange(e, 'desa')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  disabled={!formData.kecamatan}
+                  required
+                >
+                  <option value="">-- Pilih Desa/Kelurahan --</option>
+                  {filteredDesa.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Desa/Kelurahan <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.desa}
-                onChange={(e) => handleInputChange(e, 'desa')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
-                disabled={!formData.kecamatan}
-                required
-              >
-                <option value="">-- Pilih Desa/Kelurahan --</option>
-                {filteredDesa.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.nama}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          </fieldset>
 
-          {/* Row 4: Prosedur + Luas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nama Prosedur <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.namaProsedur}
-                onChange={(e) => handleInputChange(e, 'namaProsedur')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                <option value="">-- Pilih Prosedur --</option>
-                {prosedurData.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nama}
-                  </option>
-                ))}
-              </select>
+          <fieldset>
+            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Data Teknis
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Nama Prosedur{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  value={formData.namaProsedur}
+                  onChange={(e) => handleInputChange(e, 'namaProsedur')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Prosedur --</option>
+                  {prosedurData.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Luas Pendaftaran (m²){' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <Input
+                  type="number"
+                  value={formData.luasPendaftaran}
+                  onChange={(e) => handleInputChange(e, 'luasPendaftaran')}
+                  placeholder="Luas dalam m²"
+                  min={1}
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Luas Pendaftaran (m²) <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="number"
-                value={formData.luasPendaftaran}
-                onChange={(e) => handleInputChange(e, 'luasPendaftaran')}
-                placeholder="Luas dalam m²"
-                min={1}
-                required
-              />
-            </div>
-          </div>
+          </fieldset>
 
           {/* Row 5: DI.302 + DI.305 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                DI.302 <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                DI.302{' '}
+                <span className="text-red-500 ml-0.5" aria-hidden="true">
+                  *
+                </span>
               </label>
               <Input
                 value={formData.di302}
@@ -800,8 +850,11 @@ export default function EditBerkasModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                DI.305 <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                DI.305{' '}
+                <span className="text-red-500 ml-0.5" aria-hidden="true">
+                  *
+                </span>
               </label>
               <Input
                 value={formData.di305}
@@ -814,20 +867,22 @@ export default function EditBerkasModal({
 
           {/* Deskripsi */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Deskripsi</label>
             <textarea
               value={formData.deskripsi}
               onChange={(e) => handleInputChange(e, 'deskripsi')}
               placeholder="Catatan tambahan (opsional)"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 resize-none"
             />
           </div>
 
           {/* Data Ukur (stage: DI_OPERATOR_DATA_UKUR ke atas) */}
           {showDataUkur && (
-            <div className="border-t border-gray-200 pt-4 space-y-4">
-              <h3 className="text-sm font-semibold text-gray-700">📐 Data Pengukuran</h3>
+            <fieldset className="border-t border-gray-200 pt-4 space-y-4">
+              <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Data Pengukuran
+              </legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">No. STP</label>
@@ -859,13 +914,15 @@ export default function EditBerkasModal({
                   />
                 </div>
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* Hasil Ukur (stage: DI_PETUGAS_UKUR ke atas) */}
           {showHasilUkur && (
-            <div className="border-t border-gray-200 pt-4 space-y-4">
-              <h3 className="text-sm font-semibold text-gray-700">📏 Hasil Pengukuran</h3>
+            <fieldset className="border-t border-gray-200 pt-4 space-y-4">
+              <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Hasil Pengukuran
+              </legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -916,20 +973,42 @@ export default function EditBerkasModal({
                   />
                 </div>
               </div>
-            </div>
+            </fieldset>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Batal
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Menyimpan...' : '💾 Simpan Perubahan'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Actions */}
+        <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-white">
+          <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            Batal
+          </Button>
+          <Button type="submit" disabled={loading} className="flex items-center gap-2">
+            {loading && (
+              <svg
+                className="w-4 h-4 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+            )}
+            {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

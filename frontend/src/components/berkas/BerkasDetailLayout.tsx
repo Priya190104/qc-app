@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Button, Alert } from '@/components/ui';
+import { Alert, PageHeader, SectionLoader } from '@/components/ui';
+import type { BreadcrumbItem } from '@/components/ui';
 
 export type TabType = 'update' | 'detail' | 'history';
 
@@ -12,7 +13,9 @@ interface BerkasDetailLayoutProps {
   error: string | null;
   success?: string | null;
   backUrl: string;
+  backLabel?: string;
   pageTitle: string;
+  breadcrumbs?: BreadcrumbItem[];
   updateTabLabel?: string;
   children: React.ReactNode; // Tab Pembaruan Data (custom per proses)
   detailTab: React.ReactNode; // Tab Detail Data
@@ -26,7 +29,9 @@ export default function BerkasDetailLayout({
   error,
   success,
   backUrl,
+  backLabel,
   pageTitle,
+  breadcrumbs,
   updateTabLabel = 'Perbarui Data',
   children,
   detailTab,
@@ -36,14 +41,7 @@ export default function BerkasDetailLayout({
   const [activeTab, setActiveTab] = useState<TabType>(hideUpdateTab ? 'detail' : 'update');
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⌛</div>
-          <p className="text-gray-600">Loading data...</p>
-        </div>
-      </div>
-    );
+    return <SectionLoader label="Memuat data berkas..." />;
   }
 
   if (!berkas) {
@@ -51,21 +49,23 @@ export default function BerkasDetailLayout({
       <div className="space-y-6">
         <Alert type="error" title="Error" message="Berkas tidak ditemukan" />
         <Link href={backUrl}>
-          <Button variant="outline">← Kembali</Button>
+          <button className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            ← {backLabel ?? 'Kembali'}
+          </button>
         </Link>
       </div>
     );
   }
 
+  const resolvedBreadcrumbs: BreadcrumbItem[] = breadcrumbs ?? [
+    { label: backLabel ?? 'Kembali', href: backUrl },
+    { label: pageTitle },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href={backUrl}>
-          <Button variant="outline">← Kembali</Button>
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
-      </div>
+      <PageHeader title={pageTitle} breadcrumbs={resolvedBreadcrumbs} />
 
       {/* Alerts */}
       {error && <Alert type="error" title="Error" message={error} />}

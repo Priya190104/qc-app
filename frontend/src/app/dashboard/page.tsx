@@ -1,8 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Alert } from '@/components/ui';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Alert,
+  PageHeader,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  SectionLoader,
+  LoadingSpinner,
+} from '@/components/ui';
 import { apiClient } from '@/lib/api';
+import type { ApiResponse } from '@/types';
 
 interface DashboardMetrics {
   summary: {
@@ -50,13 +59,6 @@ interface BerkasSummaryItem {
   jenis: string;
 }
 
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data?: T;
-  error?: string;
-}
-
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [petugasStats, setPetugasStats] = useState<PetugasStats | null>(null);
@@ -73,13 +75,17 @@ export default function DashboardPage() {
   const [modalBerkas, setModalBerkas] = useState<BerkasSummaryItem[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
 
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+  }, []);
+
   const handlePetugasClick = async (petugas: PetugasStat, tipe: 'ukur' | 'pemetaan') => {
     setModalPetugas({ nama: petugas.nama, nip: petugas.nip, tipe });
     setModalBerkas([]);
     setModalOpen(true);
     setModalLoading(true);
     try {
-      const res = await apiClient.get<ApiResponse<{ data: BerkasSummaryItem[]; total: number }>>(
+      const res = await apiClient.get<{ data?: { data?: BerkasSummaryItem[]; total?: number } }>(
         `/dashboard/petugas-berkas?petugasId=${petugas.id}&tipe=${tipe}`
       );
       setModalBerkas(res.data?.data?.data || []);
@@ -122,110 +128,74 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⌛</div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <SectionLoader label="Memuat dashboard..." />;
   }
 
   return (
     <div className="space-y-6">
       {/* Petugas Berkas Modal */}
-      {modalOpen && modalPetugas && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setModalOpen(false)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col z-10">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <div>
-                <h2 className="text-base font-bold text-gray-900">
-                  {modalPetugas.tipe === 'ukur' ? '📐' : '🗺️'} Ringkasan Berkas —{' '}
-                  {modalPetugas.nama}
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">NIP: {modalPetugas.nip}</p>
-              </div>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+      <Modal
+        isOpen={modalOpen && !!modalPetugas}
+        onClose={closeModal}
+        titleId="modal-title"
+        maxWidth="3xl"
+      >
+        <ModalHeader
+          id="modal-title"
+          title={`Ringkasan Berkas — ${modalPetugas?.nama}`}
+          subtitle={`NIP: ${modalPetugas?.nip}`}
+          onClose={closeModal}
+        />
+        <ModalBody scrollable>
+          {modalLoading ? (
+            <div className="text-center py-10">
+              <LoadingSpinner size="md" label="Memuat data..." />
             </div>
-
-            {/* Modal Body */}
-            <div className="overflow-y-auto flex-1 px-6 py-4">
-              {modalLoading ? (
-                <div className="text-center py-10 text-gray-500">⌛ Memuat data...</div>
-              ) : modalBerkas.length === 0 ? (
-                <div className="text-center py-10 text-gray-400">
-                  Tidak ada berkas aktif saat ini
-                </div>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200 text-left">
-                      <th className="pb-2 pr-3 text-xs font-semibold text-gray-500 w-8">No</th>
-                      <th className="pb-2 pr-3 text-xs font-semibold text-gray-500">No. Berkas</th>
-                      <th className="pb-2 pr-3 text-xs font-semibold text-gray-500">
-                        Nama Pemohon
-                      </th>
-                      <th className="pb-2 pr-3 text-xs font-semibold text-gray-500">Kegiatan</th>
-                      <th className="pb-2 text-xs font-semibold text-gray-500">Jenis</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {modalBerkas.map((b) => (
-                      <tr key={b.id} className="hover:bg-gray-50">
-                        <td className="py-2 pr-3 text-gray-400 text-xs">{b.no}</td>
-                        <td className="py-2 pr-3 font-medium text-gray-900">{b.nomor}</td>
-                        <td className="py-2 pr-3 text-gray-700">{b.namaPemohon}</td>
-                        <td className="py-2 pr-3 text-gray-600">{b.kegiatan}</td>
-                        <td className="py-2">
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                              b.jenis === 'Revisi'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-blue-100 text-blue-700'
-                            }`}
-                          >
-                            {b.jenis}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            {!modalLoading && modalBerkas.length > 0 && (
-              <div className="px-6 py-3 border-t border-gray-100 text-xs text-gray-400">
-                Total: {modalBerkas.length} berkas aktif
-              </div>
-            )}
+          ) : modalBerkas.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">Tidak ada berkas aktif saat ini</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-left">
+                  <th className="pb-3 pr-3 text-xs font-semibold text-gray-700 w-8">No</th>
+                  <th className="pb-3 pr-3 text-xs font-semibold text-gray-700">No. Berkas</th>
+                  <th className="pb-3 pr-3 text-xs font-semibold text-gray-700">Nama Pemohon</th>
+                  <th className="pb-3 pr-3 text-xs font-semibold text-gray-700">Kegiatan</th>
+                  <th className="pb-3 text-xs font-semibold text-gray-700">Jenis</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {modalBerkas.map((b) => (
+                  <tr key={b.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="py-3 pr-3 text-gray-500 text-xs">{b.no}</td>
+                    <td className="py-3 pr-3 font-medium text-gray-900">{b.nomor}</td>
+                    <td className="py-3 pr-3 text-gray-700">{b.namaPemohon}</td>
+                    <td className="py-3 pr-3 text-gray-600">{b.kegiatan}</td>
+                    <td className="py-3">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-medium ${
+                          b.jenis === 'Revisi'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {b.jenis}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </ModalBody>
+        {!modalLoading && modalBerkas.length > 0 && (
+          <div className="px-6 py-3 border-t border-gray-200 text-xs text-gray-500">
+            Total: <span className="font-medium text-gray-700">{modalBerkas.length}</span> berkas
+            aktif
           </div>
-        </div>
-      )}
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">📊 Dashboard</h1>
-        <p className="text-gray-600 mt-1">Monitoring Sistem QC Berkas</p>
-      </div>
+        )}
+      </Modal>
+      <PageHeader title="Dashboard" description="Monitoring status dan performa sistem QC berkas" />
 
       {error && <Alert type="error" title="Error" message={error} className="mb-6" />}
 
@@ -233,104 +203,112 @@ export default function DashboardPage() {
       {metrics && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
-              <div className="text-sm font-medium opacity-90">Total Berkas</div>
-              <div className="text-4xl font-bold mt-2">{metrics.summary?.totalBerkas || 0}</div>
-              <div className="text-xs opacity-75 mt-2">Keseluruhan berkas</div>
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-sm font-medium text-gray-600">Total Berkas</div>
+              <div className="text-4xl font-bold text-gray-900 mt-3">
+                {metrics.summary?.totalBerkas || 0}
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Keseluruhan berkas dalam sistem</p>
             </div>
 
-            <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg shadow-lg p-6 text-white">
-              <div className="text-sm font-medium opacity-90">Dalam Proses</div>
-              <div className="text-4xl font-bold mt-2">{metrics.summary?.inProcessBerkas || 0}</div>
-              <div className="text-xs opacity-75 mt-2">Sedang diproses</div>
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-sm font-medium text-gray-600">Dalam Proses</div>
+              <div className="text-4xl font-bold text-amber-600 mt-3">
+                {metrics.summary?.inProcessBerkas || 0}
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Sedang diproses</p>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
-              <div className="text-sm font-medium opacity-90">Selesai</div>
-              <div className="text-4xl font-bold mt-2">{metrics.summary?.completedBerkas || 0}</div>
-              <div className="text-xs opacity-75 mt-2">Berkas selesai</div>
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-sm font-medium text-gray-600">Selesai</div>
+              <div className="text-4xl font-bold text-green-600 mt-3">
+                {metrics.summary?.completedBerkas || 0}
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Berkas selesai diproses</p>
             </div>
 
-            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white">
-              <div className="text-sm font-medium opacity-90">Ditutup</div>
-              <div className="text-4xl font-bold mt-2">{metrics.summary?.ditutup || 0}</div>
-              <div className="text-xs opacity-75 mt-2">Berkas ditutup</div>
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+              <div className="text-sm font-medium text-gray-600">Ditutup</div>
+              <div className="text-4xl font-bold text-red-600 mt-3">
+                {metrics.summary?.ditutup || 0}
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Berkas ditutup</p>
             </div>
           </div>
 
           {/* Status Distribution */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">📋 Distribusi Status Berkas</h2>
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Distribusi Status Berkas</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Dibuat</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Dibuat</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.dibuat || 0}
                 </div>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Op. Data Ukur</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Op. Data Ukur</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.diOperatorDataUkur || 0}
                 </div>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Petugas Ukur</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Petugas Ukur</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.diPetugasUkur || 0}
                 </div>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Op. Pemetaan</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Op. Pemetaan</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.diOperatorDataPemetaan || 0}
                 </div>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Petugas Pemetaan</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Petugas Pemetaan</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.diPetugasPemetaan || 0}
                 </div>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Pemilihan KKS</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Pemilihan KKS</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.pemilihanKKS || 0}
                 </div>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Di KKS</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Di KKS</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.diKKS || 0}
                 </div>
               </div>
-              <div className="border border-orange-300 rounded-lg p-4 bg-orange-50">
-                <div className="text-xs text-orange-700 uppercase font-medium">Revisi KKS</div>
-                <div className="text-2xl font-bold text-orange-700 mt-1">
+              <div className="border border-amber-300 rounded-lg p-4 bg-amber-50 hover:bg-amber-100 transition-colors">
+                <div className="text-xs font-medium text-amber-700">Revisi KKS</div>
+                <div className="text-2xl font-bold text-amber-700 mt-2">
                   {metrics.statusDistribution?.revisiKKS || 0}
                 </div>
               </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-500 uppercase font-medium">Kepala Seksi</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">
+              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="text-xs font-medium text-gray-500">Kepala Seksi</div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
                   {metrics.statusDistribution?.diKepalaSeksi || 0}
                 </div>
               </div>
-              <div className="border border-red-300 rounded-lg p-4 bg-red-50">
-                <div className="text-xs text-red-700 uppercase font-medium">Revisi Kasi</div>
-                <div className="text-2xl font-bold text-red-700 mt-1">
+              <div className="border border-red-300 rounded-lg p-4 bg-red-50 hover:bg-red-100 transition-colors">
+                <div className="text-xs font-medium text-red-700">Revisi Kasi</div>
+                <div className="text-2xl font-bold text-red-700 mt-2">
                   {metrics.statusDistribution?.revisiKasi || 0}
                 </div>
               </div>
-              <div className="border border-green-300 rounded-lg p-4 bg-green-50">
-                <div className="text-xs text-green-700 uppercase font-medium">Selesai</div>
-                <div className="text-2xl font-bold text-green-700 mt-1">
+              <div className="border border-green-300 rounded-lg p-4 bg-green-50 hover:bg-green-100 transition-colors">
+                <div className="text-xs font-medium text-green-700">Selesai</div>
+                <div className="text-2xl font-bold text-green-700 mt-2">
                   {metrics.statusDistribution?.selesai || 0}
                 </div>
               </div>
-              <div className="border border-red-300 rounded-lg p-4 bg-red-50">
-                <div className="text-xs text-red-700 uppercase font-medium">Ditutup</div>
-                <div className="text-2xl font-bold text-red-700 mt-1">
+              <div className="border border-red-300 rounded-lg p-4 bg-red-50 hover:bg-red-100 transition-colors">
+                <div className="text-xs font-medium text-red-700">Ditutup</div>
+                <div className="text-2xl font-bold text-red-700 mt-2">
                   {metrics.statusDistribution?.ditutup || 0}
                 </div>
               </div>
@@ -343,22 +321,25 @@ export default function DashboardPage() {
       {petugasStats && (
         <>
           {/* Petugas Ukur */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">📐 Monitoring Petugas Ukur</h2>
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Monitoring Petugas Ukur</h2>
             {petugasStats.petugasUkur && petugasStats.petugasUkur.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {petugasStats.petugasUkur.map((petugas) => (
-                  <div
+                  <button
                     key={petugas.id}
                     onClick={() => handlePetugasClick(petugas, 'ukur')}
-                    className="border border-indigo-200 rounded-lg p-4 bg-indigo-50 hover:shadow-md hover:border-indigo-400 transition-all cursor-pointer select-none"
+                    className="text-left border border-indigo-200 rounded-lg p-4 bg-white hover:shadow-md hover:border-indigo-400 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <div className="font-bold text-gray-900">{petugas.nama}</div>
+                        <div className="font-semibold text-gray-900">{petugas.nama}</div>
                         <div className="text-sm text-gray-600">NIP: {petugas.nip}</div>
                       </div>
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white text-xs font-bold">
+                      <span
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white text-xs font-bold"
+                        aria-label={`Total ${petugas.jumlahProses + petugas.jumlahRevisi} berkas`}
+                      >
                         {petugas.jumlahProses + petugas.jumlahRevisi}
                       </span>
                     </div>
@@ -376,31 +357,36 @@ export default function DashboardPage() {
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-4">Tidak ada data petugas ukur</p>
+              <p className="text-center text-gray-600 py-8">Tidak ada data petugas ukur</p>
             )}
           </div>
 
           {/* Petugas Pemetaan */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">🗺️ Monitoring Petugas Pemetaan</h2>
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Monitoring Petugas Pemetaan
+            </h2>
             {petugasStats.petugasPemetaan && petugasStats.petugasPemetaan.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {petugasStats.petugasPemetaan.map((petugas) => (
-                  <div
+                  <button
                     key={petugas.id}
                     onClick={() => handlePetugasClick(petugas, 'pemetaan')}
-                    className="border border-teal-200 rounded-lg p-4 bg-teal-50 hover:shadow-md hover:border-teal-400 transition-all cursor-pointer select-none"
+                    className="text-left border border-teal-200 rounded-lg p-4 bg-white hover:shadow-md hover:border-teal-400 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <div className="font-bold text-gray-900">{petugas.nama}</div>
+                        <div className="font-semibold text-gray-900">{petugas.nama}</div>
                         <div className="text-sm text-gray-600">NIP: {petugas.nip}</div>
                       </div>
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-white text-xs font-bold">
+                      <span
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-white text-xs font-bold"
+                        aria-label={`Total ${petugas.jumlahProses + petugas.jumlahRevisi} berkas`}
+                      >
                         {petugas.jumlahProses + petugas.jumlahRevisi}
                       </span>
                     </div>
@@ -416,11 +402,11 @@ export default function DashboardPage() {
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-4">Tidak ada data petugas pemetaan</p>
+              <p className="text-center text-gray-600 py-8">Tidak ada data petugas pemetaan</p>
             )}
           </div>
         </>

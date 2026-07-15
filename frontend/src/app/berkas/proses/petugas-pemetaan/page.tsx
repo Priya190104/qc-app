@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Button, Alert, Pagination } from '@/components/ui';
+import { Button, Alert, Pagination, PageHeader } from '@/components/ui';
+import { StatusBadge, TableSkeleton, EmptyState, TabBar } from '@/components/berkas';
 import BerkasFilter, { BerkasFilterValues } from '@/components/filters/BerkasFilter';
 import { apiClient } from '@/lib/api';
+import type { ApiResponse } from '@/types';
 
 interface Berkas {
   id: string;
@@ -31,12 +33,12 @@ interface Berkas {
 
 type TabType = 'proses' | 'revisi';
 
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data?: T;
-  error?: string;
-}
+const COLS = 9;
+
+const TABS = [
+  { key: 'proses', label: 'Dalam Proses' },
+  { key: 'revisi', label: 'Perlu Revisi' },
+];
 
 export default function PetugasPemetaanPage() {
   const [berkasList, setBerkasList] = useState<Berkas[]>([]);
@@ -172,249 +174,167 @@ export default function PetugasPemetaanPage() {
     fetchBerkas(1, filters, tab);
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'in_review':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Menunggu';
-      case 'in_review':
-        return 'Sedang Direview';
-      default:
-        return status;
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/berkas/proses">
-          <Button variant="outline">← Kembali</Button>
-        </Link>
-        <h1 className="text-3xl font-bold text-gray-900">✓🗺️ Petugas Pemetaan</h1>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Petugas Pemetaan"
+        description="Daftar berkas yang perlu diverifikasi dan diunggah hasil pemetaannya"
+        breadcrumbs={[
+          { label: 'Berkas Dalam Proses', href: '/berkas/proses' },
+          { label: 'Petugas Pemetaan' },
+        ]}
+      />
 
-      {error && <Alert type="error" title="Error" message={error} className="mb-6" />}
+      {error && <Alert type="error" title="Gagal memuat data" message={error} />}
 
-      {/* Filter Component */}
       <BerkasFilter onFilterChange={handleFilterChange} />
 
-      {/* Tabs */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => handleTabChange('proses')}
-            className={`flex-1 px-6 py-4 text-sm font-semibold transition-colors ${
-              activeTab === 'proses'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            📋 Proses
-            <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-              {activeTab === 'proses' ? totalItems : ''}
-            </span>
-          </button>
-          <button
-            onClick={() => handleTabChange('revisi')}
-            className={`flex-1 px-6 py-4 text-sm font-semibold transition-colors ${
-              activeTab === 'revisi'
-                ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-            }`}
-          >
-            ↩ Revisi
-            <span className="ml-2 px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
-              {activeTab === 'revisi' ? totalItems : ''}
-            </span>
-          </button>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <TabBar
+          tabs={TABS.map((t) => ({
+            ...t,
+            count: activeTab === t.key ? totalItems : undefined,
+          }))}
+          activeTab={activeTab}
+          onTabChange={(key) => handleTabChange(key as TabType)}
+        />
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[820px]">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-10">
+                  No.
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  No. Berkas
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  Nama Pemohon
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-28">
+                  Tgl. Masuk
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  Kegiatan
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  Desa / Kecamatan
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  Petugas Pemetaan
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-32">
+                  Status
+                </th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-24">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                <TableSkeleton cols={COLS} />
+              ) : berkasList.length === 0 ? (
+                <EmptyState
+                  cols={COLS}
+                  title={
+                    activeTab === 'proses'
+                      ? 'Tidak ada berkas dalam proses'
+                      : 'Tidak ada berkas yang perlu direvisi'
+                  }
+                  description={
+                    activeTab === 'proses'
+                      ? 'Berkas dengan status Di Petugas Pemetaan akan muncul di sini.'
+                      : 'Berkas yang dikembalikan untuk revisi akan muncul di sini.'
+                  }
+                />
+              ) : (
+                berkasList.map((berkas, index) => (
+                  <tr
+                    key={berkas.id}
+                    className="hover:bg-blue-50/40 transition-colors duration-100"
+                  >
+                    <td className="px-3 py-2.5 text-xs text-gray-500 tabular-nums">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <span
+                        className="text-xs font-semibold text-gray-900 truncate block max-w-[120px]"
+                        title={berkas.nomor}
+                      >
+                        {berkas.nomor}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <span
+                        className="text-xs text-gray-700 truncate block max-w-[140px]"
+                        title={berkas.namaPemohon || '-'}
+                      >
+                        {berkas.namaPemohon || '-'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-xs text-gray-600 whitespace-nowrap">
+                      {berkas.tanggalBerkas
+                        ? new Date(berkas.tanggalBerkas).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                          })
+                        : '-'}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <span
+                        className="text-xs text-gray-700 truncate block max-w-[130px]"
+                        title={berkas.kegiatan || '-'}
+                      >
+                        {berkas.kegiatan || '-'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <span className="block text-xs font-medium text-gray-800">
+                        {berkas.desa || '-'}
+                      </span>
+                      <span className="block text-[11px] text-gray-500">
+                        {berkas.kecamatan || '-'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {berkas.petugasPemetaan ? (
+                        <div className="flex flex-col">
+                          <span className="text-xs font-medium text-gray-800">
+                            {berkas.petugasPemetaan.nama}
+                          </span>
+                          <span className="text-[11px] text-gray-500">
+                            {berkas.petugasPemetaan.nip}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <StatusBadge status={berkas.status} />
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <Link href={`/berkas/proses/petugas-pemetaan/${berkas.id}`}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs px-2.5 py-1 text-blue-600 hover:bg-blue-50 border-blue-200 font-medium h-auto"
+                        >
+                          Verifikasi
+                        </Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-        <table className="w-full min-w-[820px]">
-          <thead className="bg-gray-100 border-b border-gray-300">
-            <tr>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '5%' }}
-              >
-                No.
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '11%' }}
-              >
-                No. Berkas
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '16%' }}
-              >
-                Nama Pemohon
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '11%' }}
-              >
-                Tanggal Masuk
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '16%' }}
-              >
-                Kegiatan
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '16%' }}
-              >
-                Desa, Kecamatan
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '14%' }}
-              >
-                Petugas Pemetaan
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '10%' }}
-              >
-                Status
-              </th>
-              <th
-                className="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase tracking-wider"
-                style={{ width: '12%' }}
-              >
-                Aksi
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-16 text-center">
-                  <div className="animate-spin text-4xl mb-4 inline-block">⌛</div>
-                  <p className="text-gray-600">Loading berkas...</p>
-                </td>
-              </tr>
-            ) : berkasList.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="px-3 py-8 text-center text-sm text-gray-500 font-medium">
-                  {activeTab === 'proses'
-                    ? 'Tidak ada berkas dalam proses'
-                    : 'Tidak ada berkas revisi'}
-                </td>
-              </tr>
-            ) : (
-              berkasList.map((berkas, index) => (
-                <tr key={berkas.id} className="hover:bg-blue-50 transition-colors duration-150">
-                  <td
-                    className="px-3 py-2.5 whitespace-nowrap text-xs font-semibold text-gray-900"
-                    style={{ width: '5%' }}
-                  >
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
-                  <td
-                    className="px-3 py-2.5 text-xs font-medium text-gray-900"
-                    style={{ width: '11%' }}
-                  >
-                    <div className="truncate" title={berkas.nomor}>
-                      {berkas.nomor}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
-                    <div className="truncate" title={berkas.namaPemohon || '-'}>
-                      {berkas.namaPemohon || '-'}
-                    </div>
-                  </td>
-                  <td
-                    className="px-3 py-2.5 text-xs text-gray-600 whitespace-nowrap"
-                    style={{ width: '11%' }}
-                  >
-                    {berkas.tanggalBerkas
-                      ? new Date(berkas.tanggalBerkas).toLocaleDateString('id-ID', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                        })
-                      : '-'}
-                  </td>
-                  <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
-                    <div className="truncate" title={berkas.kegiatan || '-'}>
-                      {berkas.kegiatan || '-'}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '16%' }}>
-                    <div
-                      className="truncate"
-                      title={`${berkas.desa || '-'}, ${berkas.kecamatan || '-'}`}
-                    >
-                      <span className="block font-medium">{berkas.desa || '-'}</span>
-                      <span className="block text-[10px] text-gray-500">
-                        {berkas.kecamatan || '-'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 text-xs text-gray-700" style={{ width: '14%' }}>
-                    <div
-                      className="truncate"
-                      title={
-                        berkas.petugasPemetaan
-                          ? `${berkas.petugasPemetaan.nama} (${berkas.petugasPemetaan.nip})`
-                          : '-'
-                      }
-                    >
-                      {berkas.petugasPemetaan ? (
-                        <>
-                          <span className="block font-medium text-gray-900">
-                            {berkas.petugasPemetaan.nama}
-                          </span>
-                          <span className="block text-[10px] text-gray-500">
-                            {berkas.petugasPemetaan.nip}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap" style={{ width: '10%' }}>
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(berkas.status)}`}
-                    >
-                      {getStatusLabel(berkas.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap" style={{ width: '12%' }}>
-                    <Link href={`/berkas/proses/petugas-pemetaan/${berkas.id}`}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-[10px] px-2 py-1 text-blue-600 hover:bg-blue-100 hover:text-blue-700 border-blue-300 font-medium"
-                      >
-                        Verifikasi
-                      </Button>
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
       {!loading && totalItems > 0 && (
         <Pagination
           currentPage={currentPage}
@@ -427,3 +347,8 @@ export default function PetugasPemetaanPage() {
     </div>
   );
 }
+
+
+
+
+

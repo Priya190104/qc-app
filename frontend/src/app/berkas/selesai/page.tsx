@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Pagination } from '@/components/ui';
+import { Alert, Pagination, PageHeader } from '@/components/ui';
 import BerkasTable from '@/components/tables/BerkasTable';
 import BerkasFilter, { BerkasFilterValues } from '@/components/filters/BerkasFilter';
 import { apiClient } from '@/lib/api';
+import type { ApiResponse } from '@/types';
 
 interface Berkas {
   id: string;
@@ -32,13 +33,6 @@ interface Berkas {
     lastName: string;
     email: string;
   };
-}
-
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data?: T;
-  error?: string;
 }
 
 export default function SelesaiBerkasPage() {
@@ -162,10 +156,11 @@ export default function SelesaiBerkasPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">✅ Berkas Selesai</h1>
-        <p className="text-gray-600 mt-1">Berkas yang telah disetujui</p>
-      </div>
+      <PageHeader
+        title="Berkas Selesai"
+        description="Berkas yang telah disetujui"
+        breadcrumbs={[{ label: 'Berkas' }]}
+      />
 
       {error && <Alert type="error" title="Error" message={error} className="mb-6" />}
 

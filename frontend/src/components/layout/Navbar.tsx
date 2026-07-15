@@ -5,19 +5,41 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import useAuth from '@/hooks/useAuth';
 import { useLayoutStore } from '@/stores/layoutStore';
+import { useAuthStore } from '@/stores';
 import authService from '@/lib/auth';
+import {
+  LayoutDashboard,
+  FileText,
+  Files,
+  Clock,
+  CheckCircle2,
+  UserCheck,
+  Users,
+  Database,
+  BarChart2,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ClipboardList,
+} from 'lucide-react';
 
 interface NavItem {
   label: string;
   href: string;
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  onOpenSurvey?: () => void;
+}
+
+export default function Sidebar({ onOpenSurvey }: SidebarProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const { logout } = useAuth();
   const { sidebarCollapsed, toggleSidebar } = useLayoutStore();
+  const { user } = useAuthStore();
   const [berkasDropdownOpen, setBerkasDropdownOpen] = useState(false);
 
   const isAdmin = useMemo(() => {
@@ -25,22 +47,23 @@ export default function Sidebar() {
     return roles.some((r) => r === 'administrator' || r === 'admin');
   }, []);
 
-  const navItems: NavItem[] = useMemo(
+  const adminNavItems: NavItem[] = useMemo(
     () =>
       isAdmin
         ? [
-            { label: 'Petugas', href: '/petugas', icon: '👤' },
-            { label: 'Manajemen User', href: '/akun', icon: '👥' },
-            { label: 'Backup Data', href: '/backup', icon: '🗄️' },
+            { label: 'Petugas', href: '/petugas', icon: UserCheck },
+            { label: 'Manajemen User', href: '/akun', icon: Users },
+            { label: 'Backup Data', href: '/backup', icon: Database },
+            { label: 'Hasil UMUX', href: '/umux-results', icon: BarChart2 },
           ]
         : [],
     [isAdmin]
   );
 
   const berkasSubItems = [
-    { label: 'Semua Berkas', href: '/berkas/all', icon: '📋' },
-    { label: 'Berkas Proses', href: '/berkas/proses', icon: '⏱️' },
-    { label: 'Berkas Selesai', href: '/berkas/selesai', icon: '✅' },
+    { label: 'Semua Berkas', href: '/berkas/all', icon: Files },
+    { label: 'Berkas Proses', href: '/berkas/proses', icon: Clock },
+    { label: 'Berkas Selesai', href: '/berkas/selesai', icon: CheckCircle2 },
   ];
 
   const handleLogout = async () => {
@@ -48,124 +71,256 @@ export default function Sidebar() {
     router.push('/auth/login');
   };
 
-  const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/');
-  };
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
+  const isBerkasActive = () => pathname.startsWith('/berkas');
+  const isBerkasSubActive = (href: string) => pathname === href || pathname.startsWith(href);
 
-  const isBerkasActive = () => {
-    return pathname.startsWith('/berkas');
-  };
+  const userDisplayName = user
+    ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email
+    : null;
+  const userInitial =
+    user?.firstName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? null;
+  const userRoleName = user?.roles?.[0]?.name ?? '';
+  const roleLabel =
+    userRoleName.toLowerCase() === 'administrator' || userRoleName.toLowerCase() === 'admin'
+      ? 'Administrator'
+      : userRoleName.toLowerCase() === 'petugas'
+        ? 'Petugas'
+        : userRoleName || null;
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-gray-900 text-white transition-all duration-300 z-40 ${
+      className={`fixed left-0 top-0 h-screen bg-gray-900 flex flex-col z-40 transition-[width] duration-200 ease-out ${
         sidebarCollapsed ? 'w-20' : 'w-64'
       }`}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
-        {!sidebarCollapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <div className="text-2xl">📋</div>
-            <div>
-              <div className="text-sm font-bold">QC BERKAS</div>
-              <div className="text-xs text-gray-400">Control</div>
-            </div>
+      {/* Brand header */}
+      <div
+        className={`flex items-center h-16 shrink-0 border-b border-white/[0.06] ${
+          sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-4'
+        }`}
+      >
+        {sidebarCollapsed ? (
+          <Link
+            href="/dashboard"
+            className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
+            title="QC Berkas – Dashboard"
+          >
+            <FileText className="w-[18px] h-[18px] text-white" />
           </Link>
+        ) : (
+          <>
+            <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                <FileText className="w-[18px] h-[18px] text-white" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-white tracking-wide leading-tight truncate">
+                  QC BERKAS
+                </p>
+                <p className="text-[10px] text-gray-500 leading-tight truncate">
+                  Kontrol Kualitas Dokumen
+                </p>
+              </div>
+            </Link>
+            <button
+              onClick={toggleSidebar}
+              className="w-7 h-7 flex items-center justify-center text-gray-600 hover:text-gray-300 hover:bg-white/[0.05] rounded-md transition-colors shrink-0"
+              aria-label="Collapse sidebar"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </>
         )}
-        <button
-          onClick={() => toggleSidebar()}
-          className="p-1 hover:bg-gray-800 rounded-lg transition-colors"
-          title={sidebarCollapsed ? 'Expand' : 'Collapse'}
-        >
-          {sidebarCollapsed ? '→' : '←'}
-        </button>
       </div>
 
-      {/* Navigation Items */}
-      <nav className="flex-1 px-2 py-6 space-y-2">
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 flex flex-col gap-0.5">
         {/* Dashboard */}
-        <Link
+        <SidebarLink
           href="/dashboard"
-          className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-            isActive('/dashboard') ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
-          }`}
-          title={sidebarCollapsed ? 'Dashboard' : ''}
-        >
-          <span className="text-xl flex-shrink-0">📊</span>
-          {!sidebarCollapsed && <span className="text-sm font-medium">Dashboard</span>}
-        </Link>
+          label="Dashboard"
+          icon={LayoutDashboard}
+          active={isActive('/dashboard')}
+          collapsed={sidebarCollapsed}
+        />
 
-        {/* Berkas with Dropdown */}
+        {/* Berkas group with submenu */}
         <div>
           <button
-            onClick={() => setBerkasDropdownOpen(!berkasDropdownOpen)}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-              isBerkasActive() ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
-            }`}
-            title={sidebarCollapsed ? 'Berkas' : ''}
+            onClick={() => !sidebarCollapsed && setBerkasDropdownOpen((o) => !o)}
+            className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-colors group ${
+              isBerkasActive()
+                ? 'bg-blue-600/[0.12] text-blue-400'
+                : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+            } ${sidebarCollapsed ? 'justify-center' : ''}`}
+            title={sidebarCollapsed ? 'Berkas' : undefined}
           >
-            <div className="flex items-center space-x-3">
-              <span className="text-xl flex-shrink-0">📄</span>
-              {!sidebarCollapsed && <span className="text-sm font-medium">Berkas</span>}
-            </div>
+            {isBerkasActive() && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-blue-500 rounded-r-full" />
+            )}
+            <span className="flex items-center gap-3 flex-1 min-w-0">
+              <FileText
+                className={`w-[18px] h-[18px] shrink-0 transition-colors ${
+                  isBerkasActive() ? 'text-blue-400' : 'text-gray-500 group-hover:text-gray-300'
+                }`}
+              />
+              {!sidebarCollapsed && <span className="truncate">Berkas</span>}
+            </span>
             {!sidebarCollapsed && (
-              <span
-                className={`text-xs transition-transform ${berkasDropdownOpen ? 'rotate-180' : ''}`}
-              >
-                ▼
-              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-gray-600 shrink-0 transition-transform duration-150 ${
+                  berkasDropdownOpen ? 'rotate-180' : ''
+                }`}
+              />
             )}
           </button>
 
-          {/* Berkas Submenu */}
-          {berkasDropdownOpen && !sidebarCollapsed && (
-            <div className="mt-1 ml-2 space-y-1 border-l border-gray-700 pl-2">
-              {berkasSubItems.map((subItem) => (
+          {/* Submenu */}
+          {!sidebarCollapsed && berkasDropdownOpen && (
+            <div className="mt-0.5 ml-3.5 pl-3 border-l border-white/[0.07] flex flex-col gap-0.5">
+              {berkasSubItems.map((sub) => (
                 <Link
-                  key={subItem.href}
-                  href={subItem.href}
-                  className={`flex items-center space-x-3 px-4 py-2 rounded-lg text-sm transition-colors ${
-                    pathname === subItem.href || pathname.startsWith(subItem.href)
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                  key={sub.href}
+                  href={sub.href}
+                  className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[12.5px] font-medium transition-colors group ${
+                    isBerkasSubActive(sub.href)
+                      ? 'text-blue-400 bg-blue-600/[0.10]'
+                      : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.04]'
                   }`}
                 >
-                  <span className="text-lg">{subItem.icon}</span>
-                  <span>{subItem.label}</span>
+                  {isBerkasSubActive(sub.href) && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-blue-500 rounded-r-full" />
+                  )}
+                  <sub.icon
+                    className={`w-[15px] h-[15px] shrink-0 ${
+                      isBerkasSubActive(sub.href)
+                        ? 'text-blue-400'
+                        : 'text-gray-600 group-hover:text-gray-400'
+                    }`}
+                  />
+                  <span className="truncate">{sub.label}</span>
                 </Link>
               ))}
             </div>
           )}
         </div>
 
-        {/* Other Nav Items */}
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-              isActive(item.href) ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
-            }`}
-            title={sidebarCollapsed ? item.label : ''}
-          >
-            <span className="text-xl flex-shrink-0">{item.icon}</span>
-            {!sidebarCollapsed && <span className="text-sm font-medium">{item.label}</span>}
-          </Link>
-        ))}
+        {/* Admin items */}
+        {adminNavItems.length > 0 && (
+          <>
+            <div
+              className={`${sidebarCollapsed ? 'mx-3 my-2' : 'mx-1 my-2'} border-t border-white/[0.06]`}
+            />
+            {!sidebarCollapsed && (
+              <p className="px-3 pb-1 text-[10px] font-semibold text-gray-600 uppercase tracking-[0.09em]">
+                Administrasi
+              </p>
+            )}
+            {adminNavItems.map((item) => (
+              <SidebarLink
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+                active={isActive(item.href)}
+                collapsed={sidebarCollapsed}
+              />
+            ))}
+          </>
+        )}
       </nav>
 
-      {/* Footer - Logout */}
-      <div className="border-t border-gray-800 p-4">
+      {/* Footer: user info + logout */}
+      <div className="shrink-0 border-t border-white/[0.06] p-2">
+        {/* User chip (expanded only) */}
+        {!sidebarCollapsed && userInitial && (
+          <div className="flex items-center gap-2.5 px-3 py-2 mb-1 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-blue-600/20 border border-blue-600/30 flex items-center justify-center shrink-0">
+              <span className="text-[11px] font-semibold text-blue-400">{userInitial}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[12px] font-medium text-gray-300 truncate leading-tight">
+                {userDisplayName}
+              </p>
+              {roleLabel && (
+                <p className="text-[10px] text-gray-600 leading-tight truncate">{roleLabel}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Isi Survei UMUX */}
+        {onOpenSurvey && (
+          <button
+            onClick={onOpenSurvey}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13.5px] font-medium text-gray-500 hover:text-blue-400 hover:bg-blue-500/[0.08] transition-colors group ${
+              sidebarCollapsed ? 'justify-center' : ''
+            }`}
+            title={sidebarCollapsed ? 'Isi Survei Kepuasan' : undefined}
+          >
+            <ClipboardList className="w-[18px] h-[18px] shrink-0 transition-colors group-hover:text-blue-400" />
+            {!sidebarCollapsed && <span>Isi Survei Kepuasan</span>}
+          </button>
+        )}
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
-          title={sidebarCollapsed ? 'Logout' : ''}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-gray-500 hover:text-red-400 hover:bg-red-500/[0.08] transition-colors group ${
+            sidebarCollapsed ? 'justify-center' : ''
+          }`}
+          title={sidebarCollapsed ? 'Logout' : undefined}
         >
-          <span className="text-xl flex-shrink-0">🚪</span>
-          {!sidebarCollapsed && <span className="text-sm font-medium">Logout</span>}
+          <LogOut className="w-[18px] h-[18px] shrink-0 transition-colors group-hover:text-red-400" />
+          {!sidebarCollapsed && <span>Logout</span>}
         </button>
+
+        {/* Expand toggle (collapsed state only) */}
+        {sidebarCollapsed && (
+          <button
+            onClick={toggleSidebar}
+            className="w-full mt-1 flex items-center justify-center py-2 text-gray-700 hover:text-gray-400 hover:bg-white/[0.04] rounded-lg transition-colors"
+            aria-label="Expand sidebar"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </aside>
+  );
+}
+
+// ── Reusable nav link ────────────────────────────────────────────────────────
+
+interface SidebarLinkProps {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+  collapsed: boolean;
+}
+
+function SidebarLink({ href, label, icon: Icon, active, collapsed }: SidebarLinkProps) {
+  return (
+    <Link
+      href={href}
+      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-colors group ${
+        active
+          ? 'bg-blue-600/[0.12] text-blue-400'
+          : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+      } ${collapsed ? 'justify-center' : ''}`}
+      title={collapsed ? label : undefined}
+    >
+      {active && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-blue-500 rounded-r-full" />
+      )}
+      <Icon
+        className={`w-[18px] h-[18px] shrink-0 transition-colors ${
+          active ? 'text-blue-400' : 'text-gray-500 group-hover:text-gray-300'
+        }`}
+      />
+      {!collapsed && <span className="truncate">{label}</span>}
+    </Link>
   );
 }

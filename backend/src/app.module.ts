@@ -11,6 +11,7 @@ import { PetugasModule } from './modules/petugas/petugas.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { BerkasModule } from './modules/berkas/berkas.module';
 import { BackupModule } from './modules/backup/backup.module';
+import { FeedbackModule } from './modules/feedback/feedback.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
@@ -30,6 +31,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     DashboardModule,
     BerkasModule,
     BackupModule,
+    FeedbackModule,
   ],
 })
 export class AppModule implements NestModule {

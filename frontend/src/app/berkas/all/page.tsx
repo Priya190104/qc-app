@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Alert, Pagination } from '@/components/ui';
+import { Button, Alert, Pagination, PageHeader } from '@/components/ui';
 import BerkasTable from '@/components/tables/BerkasTable';
 import AddBerkasModal from '@/components/modals/AddBerkasModal';
 import BerkasImportExport from '@/components/modals/BerkasImportExport';
 import BerkasFilter, { BerkasFilterValues } from '@/components/filters/BerkasFilter';
 import { apiClient } from '@/lib/api';
+import type { ApiResponse } from '@/types';
 import { useAuthStore } from '@/stores';
 
 interface Berkas {
@@ -37,13 +38,6 @@ interface Berkas {
     lastName: string;
     email: string;
   };
-}
-
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data?: T;
-  error?: string;
 }
 
 export default function AllBerkasPage() {
@@ -196,27 +190,28 @@ export default function AllBerkasPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">📋 Semua Berkas</h1>
-          <p className="text-gray-600 mt-1">Kelola data berkas dengan mudah</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <BerkasImportExport
-            currentFilters={filters}
-            onImportSuccess={handleImportSuccess}
-            onExportSuccess={() => {}}
-          />
-          {canAddBerkas && (
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
-            >
-              + Tambah Berkas
-            </Button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Semua Berkas"
+        description="Kelola data berkas dengan mudah"
+        breadcrumbs={[{ label: 'Berkas' }]}
+        actions={
+          <>
+            <BerkasImportExport
+              currentFilters={filters}
+              onImportSuccess={handleImportSuccess}
+              onExportSuccess={() => {}}
+            />
+            {canAddBerkas && (
+              <Button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
+              >
+                + Tambah Berkas
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {error && <Alert type="error" title="Error" message={error} />}
 

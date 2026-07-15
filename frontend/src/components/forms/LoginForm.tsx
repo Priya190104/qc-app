@@ -16,7 +16,6 @@ export const LoginForm: React.FC = () => {
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -77,19 +76,13 @@ export const LoginForm: React.FC = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Alamat Email</label>
           <div
-            className={`relative flex items-center rounded-xl border-2 transition-all duration-200 bg-white ${
+            className={`group relative flex items-center rounded-xl border-2 transition-all duration-200 bg-white ${
               fieldErrors.email
                 ? 'border-red-400 bg-red-50'
-                : focusedField === 'email'
-                  ? 'border-blue-500 shadow-sm shadow-blue-100'
-                  : 'border-gray-200 hover:border-gray-300'
+                : 'border-gray-200 hover:border-gray-300 focus-within:border-blue-500 focus-within:shadow-sm focus-within:shadow-blue-100'
             }`}
           >
-            <span
-              className={`pl-4 flex-shrink-0 transition-colors duration-200 ${
-                focusedField === 'email' ? 'text-blue-500' : 'text-gray-400'
-              }`}
-            >
+            <span className="pl-4 flex-shrink-0 transition-colors duration-200 text-gray-400 group-focus-within:text-blue-500">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -104,8 +97,6 @@ export const LoginForm: React.FC = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              onFocus={() => setFocusedField('email')}
-              onBlur={() => setFocusedField(null)}
               placeholder="contoh@email.com"
               disabled={isLoading}
               className="flex-1 px-3 py-3.5 bg-transparent text-gray-900 placeholder-gray-400 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 rounded-xl"
@@ -129,19 +120,13 @@ export const LoginForm: React.FC = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
           <div
-            className={`relative flex items-center rounded-xl border-2 transition-all duration-200 bg-white ${
+            className={`group relative flex items-center rounded-xl border-2 transition-all duration-200 bg-white ${
               fieldErrors.password
                 ? 'border-red-400 bg-red-50'
-                : focusedField === 'password'
-                  ? 'border-blue-500 shadow-sm shadow-blue-100'
-                  : 'border-gray-200 hover:border-gray-300'
+                : 'border-gray-200 hover:border-gray-300 focus-within:border-blue-500 focus-within:shadow-sm focus-within:shadow-blue-100'
             }`}
           >
-            <span
-              className={`pl-4 flex-shrink-0 transition-colors duration-200 ${
-                focusedField === 'password' ? 'text-blue-500' : 'text-gray-400'
-              }`}
-            >
+            <span className="pl-4 flex-shrink-0 transition-colors duration-200 text-gray-400 group-focus-within:text-blue-500">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -156,8 +141,6 @@ export const LoginForm: React.FC = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              onFocus={() => setFocusedField('password')}
-              onBlur={() => setFocusedField(null)}
               placeholder="Masukkan password Anda"
               disabled={isLoading}
               className="flex-1 px-3 py-3.5 bg-transparent text-gray-900 placeholder-gray-400 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
@@ -165,8 +148,9 @@ export const LoginForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="pr-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none"
-              tabIndex={-1}
+              aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+              aria-pressed={showPassword}
+              className="pr-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded"
             >
               {showPassword ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
+import { Modal, ModalHeader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 
 interface AddBerkasModalProps {
@@ -534,188 +535,243 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Tambah Berkas Baru</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">
-            ×
-          </button>
-        </div>
+    <Modal isOpen={isOpen} onClose={onClose} titleId="add-berkas-modal-title" maxWidth="2xl">
+      <ModalHeader id="add-berkas-modal-title" title="Tambah Berkas Baru" onClose={onClose} />
 
-        {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+      {/* Content */}
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+        <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
           {error && <Alert type="error" title="Error" message={error} />}
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Kegiatan */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kegiatan <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.kegiatan}
-                onChange={(e) => handleInputChange(e, 'kegiatan')}
-                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-blue-500"
+          {/* Identitas Berkas */}
+          <fieldset>
+            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Identitas Berkas
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Kegiatan */}
+              <div>
+                <label
+                  htmlFor="ab-kegiatan"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
+                >
+                  Kegiatan{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  id="ab-kegiatan"
+                  value={formData.kegiatan}
+                  onChange={(e) => handleInputChange(e, 'kegiatan')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Kegiatan --</option>
+                  {kegiatanData.map((k) => (
+                    <option key={k.id} value={k.nama}>
+                      {k.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tanggal Berkas */}
+              <Input
+                label="Tanggal Berkas"
+                type="date"
+                value={formData.tanggalBerkas}
+                onChange={(e) => handleInputChange(e, 'tanggalBerkas')}
                 required
-              >
-                <option value="">-- Pilih Kegiatan --</option>
-                {kegiatanData.map((k) => (
-                  <option key={k.id} value={k.nama}>
-                    {k.nama}
-                  </option>
-                ))}
-              </select>
+              />
+
+              {/* No. Berkas */}
+              <Input
+                label="No. Berkas"
+                type="number"
+                value={formData.noBerkas}
+                onChange={(e) => handleInputChange(e, 'noBerkas')}
+                placeholder="Nomor berkas"
+                min="1"
+                inputMode="numeric"
+                required
+              />
+
+              {/* Tahun Berkas */}
+              <Input
+                label="Tahun Berkas"
+                type="number"
+                value={formData.tahunBerkas}
+                onChange={(e) => handleInputChange(e, 'tahunBerkas')}
+                required
+              />
             </div>
+          </fieldset>
 
-            {/* Tanggal Berkas */}
-            <Input
-              label="Tanggal Berkas"
-              type="date"
-              value={formData.tanggalBerkas}
-              onChange={(e) => handleInputChange(e, 'tanggalBerkas')}
-              required
-            />
-
-            {/* No. Berkas */}
-            <Input
-              label="No. Berkas"
-              type="number"
-              value={formData.noBerkas}
-              onChange={(e) => handleInputChange(e, 'noBerkas')}
-              placeholder="Masukkan nomor berkas"
-              min="1"
-              inputMode="numeric"
-              required
-            />
-
-            {/* Tahun Berkas */}
-            <Input
-              label="Tahun Berkas"
-              type="number"
-              value={formData.tahunBerkas}
-              onChange={(e) => handleInputChange(e, 'tahunBerkas')}
-              required
-            />
-
-            {/* Nama Pemohon */}
+          {/* Data Pemohon */}
+          <fieldset>
+            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Data Pemohon
+            </legend>
             <Input
               label="Nama Pemohon"
               type="text"
               value={formData.namaPemohon}
               onChange={(e) => handleInputChange(e, 'namaPemohon')}
-              placeholder="Masukkan nama pemohon"
+              placeholder="Nama lengkap pemohon"
               required
             />
+          </fieldset>
 
-            {/* Kecamatan */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kecamatan <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.kecamatan}
-                onChange={(e) => handleInputChange(e, 'kecamatan')}
-                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-blue-500"
-                required
-              >
-                <option value="">-- Pilih Kecamatan --</option>
-                {kecamatanData.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama}
-                  </option>
-                ))}
-              </select>
+          {/* Lokasi */}
+          <fieldset>
+            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Lokasi
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Kecamatan */}
+              <div>
+                <label
+                  htmlFor="ab-kecamatan"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
+                >
+                  Kecamatan{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  id="ab-kecamatan"
+                  value={formData.kecamatan}
+                  onChange={(e) => handleInputChange(e, 'kecamatan')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Kecamatan --</option>
+                  {kecamatanData.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Desa/Kelurahan */}
+              <div>
+                <label htmlFor="ab-desa" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Desa/Kelurahan{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  id="ab-desa"
+                  value={formData.desa}
+                  onChange={(e) => handleInputChange(e, 'desa')}
+                  disabled={!formData.kecamatan}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  required
+                >
+                  <option value="">-- Pilih Desa/Kelurahan --</option>
+                  {filteredDesa.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.nama}
+                    </option>
+                  ))}
+                </select>
+                {!formData.kecamatan && (
+                  <p className="mt-1 text-xs text-gray-400">Pilih kecamatan terlebih dahulu</p>
+                )}
+              </div>
             </div>
+          </fieldset>
 
-            {/* Desa/Kelurahan */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Desa/Kelurahan <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.desa}
-                onChange={(e) => handleInputChange(e, 'desa')}
-                disabled={!formData.kecamatan}
-                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+          {/* Data Teknis */}
+          <fieldset>
+            <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Data Teknis
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Nama Prosedur */}
+              <div>
+                <label
+                  htmlFor="ab-prosedur"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
+                >
+                  Nama Prosedur{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <select
+                  id="ab-prosedur"
+                  value={formData.namaProsedur}
+                  onChange={(e) => handleInputChange(e, 'namaProsedur')}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Prosedur --</option>
+                  {prosedurData.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Luas Pendaftaran */}
+              <Input
+                label="Luas Pendaftaran (m²)"
+                type="number"
+                value={formData.luasPendaftaran}
+                onChange={(e) => handleInputChange(e, 'luasPendaftaran')}
+                placeholder="Luas dalam m²"
                 required
-              >
-                <option value="">-- Pilih Desa/Kelurahan --</option>
-                {filteredDesa.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.nama}
-                  </option>
-                ))}
-              </select>
-            </div>
+              />
 
-            {/* Nama Prosedur */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nama Prosedur <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.namaProsedur}
-                onChange={(e) => handleInputChange(e, 'namaProsedur')}
-                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:outline-none focus:border-blue-500"
+              {/* DI.302 */}
+              <Input
+                label="DI.302"
+                type="text"
+                value={formData.di302}
+                onChange={(e) => handleInputChange(e, 'di302')}
+                placeholder="Nomor DI.302"
                 required
-              >
-                <option value="">-- Pilih Prosedur --</option>
-                {prosedurData.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nama}
-                  </option>
-                ))}
-              </select>
+              />
+
+              {/* DI.305 */}
+              <Input
+                label="DI.305"
+                type="text"
+                value={formData.di305}
+                onChange={(e) => handleInputChange(e, 'di305')}
+                placeholder="Nomor DI.305"
+                required
+              />
             </div>
+          </fieldset>
+        </div>
 
-            {/* Luas Pendaftaran */}
-            <Input
-              label="Luas Pendaftaran (m²)"
-              type="number"
-              value={formData.luasPendaftaran}
-              onChange={(e) => handleInputChange(e, 'luasPendaftaran')}
-              placeholder="Masukkan luas (m²)"
-              required
-            />
-
-            {/* DI.302 */}
-            <Input
-              label="DI.302"
-              type="text"
-              value={formData.di302}
-              onChange={(e) => handleInputChange(e, 'di302')}
-              placeholder="Masukkan DI.302"
-              required
-            />
-
-            {/* DI.305 */}
-            <Input
-              label="DI.305"
-              type="text"
-              value={formData.di305}
-              onChange={(e) => handleInputChange(e, 'di305')}
-              placeholder="Masukkan DI.305"
-              required
-            />
-          </div>
-
-          {/* Footer */}
-          <div className="flex gap-3 justify-end pt-6 border-t border-gray-200">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Batal
-            </Button>
-            <Button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={loading}
-            >
-              {loading ? 'Memproses...' : 'Simpan Berkas'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Footer */}
+        <div className="flex-shrink-0 flex gap-3 justify-end px-6 py-4 border-t border-gray-200 bg-white">
+          <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+            disabled={loading}
+          >
+            {loading && (
+              <span
+                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                aria-hidden="true"
+              />
+            )}
+            {loading ? 'Memproses...' : 'Simpan Berkas'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

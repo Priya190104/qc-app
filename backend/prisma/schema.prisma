@@ -39,6 +39,7 @@ model User {
   berkasClosed   Berkas[]        @relation("closedByUser")
   BerkasHistory  BerkasHistory[]
   roles          UserRole[]
+  umuxResponses  UmuxResponse[]
 
   @@index([email])
   @@index([isActive])
@@ -214,4 +215,19 @@ model AuditLog {
   @@index([entityId])
   // Composite index for archiving queries (filter by date range on specific entity)
   @@index([entity, createdAt(sort: Desc)])
+}
+
+model UmuxResponse {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  q1          Int      // Positif: Sistem memenuhi kebutuhan kerja (1–7)
+  q2          Int      // Negatif: Merasa kesulitan (1–7)
+  q3          Int      // Positif: Mudah digunakan (1–7)
+  q4          Int      // Negatif: Butuh bantuan teknis (1–7)
+  score       Int      // Skor UMUX 0–100 yang dihitung dari formula UMUX-Lite
+  submittedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([submittedAt(sort: Desc)])
 }

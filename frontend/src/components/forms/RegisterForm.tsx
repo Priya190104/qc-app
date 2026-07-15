@@ -24,35 +24,35 @@ export const RegisterForm: React.FC = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = 'Email wajib diisi';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = 'Format email tidak valid';
     }
 
     if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
+      errors.firstName = 'Nama depan wajib diisi';
     }
 
     if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
+      errors.lastName = 'Nama belakang wajib diisi';
     }
 
     if (!formData.password.trim()) {
-      errors.password = 'Password is required';
+      errors.password = 'Password wajib diisi';
     } else if (formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
+      errors.password = 'Password minimal 8 karakter';
     } else if (!/(?=.*[a-z])/.test(formData.password)) {
-      errors.password = 'Password must contain lowercase letters';
+      errors.password = 'Password harus mengandung huruf kecil';
     } else if (!/(?=.*[A-Z])/.test(formData.password)) {
-      errors.password = 'Password must contain uppercase letters';
+      errors.password = 'Password harus mengandung huruf besar';
     } else if (!/(?=.*\d)/.test(formData.password)) {
-      errors.password = 'Password must contain numbers';
+      errors.password = 'Password harus mengandung angka';
     } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
-      errors.password = 'Password must contain special characters (@$!%*?&)';
+      errors.password = 'Password harus mengandung karakter khusus (@$!%*?&)';
     }
 
     if (formData.password !== formData.passwordConfirm) {
-      errors.passwordConfirm = 'Passwords do not match';
+      errors.passwordConfirm = 'Konfirmasi password tidak cocok';
     }
 
     setFieldErrors(errors);
@@ -103,23 +103,17 @@ export const RegisterForm: React.FC = () => {
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="flex-1 h-1 rounded-full transition-colors"
-            style={{
-              backgroundColor:
-                i < Math.min(Math.ceil((formData.password.length / 8) * 4), 4)
-                  ? '#3b82f6'
-                  : '#e5e7eb',
-            }}
+            className={`flex-1 h-1 rounded-full transition-colors ${
+              i < Math.min(Math.ceil((formData.password.length / 8) * 4), 4)
+                ? 'bg-blue-500'
+                : 'bg-gray-200'
+            }`}
           />
         ))}
       </div>
       <p className="text-xs text-gray-600 mt-1">
-        {formData.password.length < 8
-          ? 'Weak'
-          : formData.password.length < 12
-          ? 'Fair'
-          : 'Strong'}{' '}
-        password
+        Kekuatan password:{' '}
+        {formData.password.length < 8 ? 'Lemah' : formData.password.length < 12 ? 'Cukup' : 'Kuat'}
       </p>
     </div>
   ) : null;
@@ -127,14 +121,14 @@ export const RegisterForm: React.FC = () => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Admin Account</h1>
-        <p className="text-gray-600">Set up a new admin account for SISTEM QC BERKAS</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Buat Akun Admin</h1>
+        <p className="text-gray-600">Buat akun admin baru untuk SISTEM QC BERKAS</p>
       </div>
 
       {error && (
         <Alert
           type="error"
-          title="Registration Failed"
+          title="Pendaftaran Gagal"
           message={error}
           onClose={() => setError(null)}
           className="mb-6"
@@ -142,31 +136,31 @@ export const RegisterForm: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label="First Name"
+            label="Nama Depan"
             type="text"
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
-            placeholder="John"
+            placeholder="Budi"
             error={fieldErrors.firstName}
             disabled={isLoading}
           />
           <Input
-            label="Last Name"
+            label="Nama Belakang"
             type="text"
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
-            placeholder="Doe"
+            placeholder="Santoso"
             error={fieldErrors.lastName}
             disabled={isLoading}
           />
         </div>
 
         <Input
-          label="Email Address"
+          label="Alamat Email"
           type="email"
           name="email"
           value={formData.email}
@@ -186,13 +180,13 @@ export const RegisterForm: React.FC = () => {
             placeholder="••••••••"
             error={fieldErrors.password}
             disabled={isLoading}
-            helperText="Min 8 chars, uppercase, lowercase, number, special char"
+            helperText="Min 8 karakter, huruf besar, kecil, angka, karakter khusus"
           />
           {passwordStrength}
         </div>
 
         <Input
-          label="Confirm Password"
+          label="Konfirmasi Password"
           type={showPassword ? 'text' : 'password'}
           name="passwordConfirm"
           value={formData.passwordConfirm}
@@ -211,7 +205,7 @@ export const RegisterForm: React.FC = () => {
             className="w-4 h-4 text-blue-600 rounded"
           />
           <label htmlFor="showPassword" className="ml-2 text-sm text-gray-700">
-            Show passwords
+            Tampilkan password
           </label>
         </div>
 
@@ -223,15 +217,15 @@ export const RegisterForm: React.FC = () => {
           isLoading={isLoading}
           disabled={isLoading}
         >
-          Create Account
+          Buat Akun
         </Button>
       </form>
 
       <div className="mt-6 text-center text-sm text-gray-600">
         <p>
-          Already have an account?{' '}
+          Sudah punya akun?{' '}
           <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
-            Sign in
+            Masuk
           </Link>
         </p>
       </div>

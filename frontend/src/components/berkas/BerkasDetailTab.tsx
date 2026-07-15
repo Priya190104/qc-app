@@ -20,6 +20,10 @@ interface Berkas {
     nama: string;
     nip: string;
   };
+  petugasPemetaan?: {
+    nama: string;
+    nip: string;
+  };
   noSTP?: string;
   tglSTP?: string;
   noSHATNIBEL?: string;
@@ -198,9 +202,21 @@ export default function BerkasDetailTab({ berkas }: BerkasDetailTabProps) {
           </div>
 
           {/* Data Pemetaan */}
-          {(berkas.jumlahBidang || berkas.luasHasilUkur || berkas.nib || berkas.noSU) && (
+          {(berkas.petugasPemetaan ||
+            berkas.jumlahBidang ||
+            berkas.luasHasilUkur ||
+            berkas.nib ||
+            berkas.noSU) && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                {berkas.petugasPemetaan && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Petugas Pemetaan</h3>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {berkas.petugasPemetaan.nama} ({berkas.petugasPemetaan.nip})
+                    </p>
+                  </div>
+                )}
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Jumlah Bidang</h3>
                   <p className="mt-1 text-sm font-semibold text-purple-700">

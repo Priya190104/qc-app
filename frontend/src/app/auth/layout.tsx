@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Logo & Title */}
         <div className="relative z-10 text-center">
-          <div className="mx-auto mb-6 w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl">
+          <div className="mx-auto mb-6 w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center border border-white/20 shadow-xl">
             <svg
               className="w-10 h-10 text-white"
               fill="none"
@@ -50,7 +50,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             ].map((item, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/10"
+                className="flex items-start gap-3 bg-white/20 rounded-xl p-4 border border-white/15"
               >
                 <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
                   <svg

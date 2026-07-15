@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
 import { Petugas } from '@/types';
+import { Modal, ModalHeader, ModalBody } from '@/components/ui';
 
 interface PetugasModalProps {
   isOpen: boolean;
@@ -87,87 +88,114 @@ export default function PetugasModal({
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {editPetugas ? 'Edit Petugas' : 'Tambah Petugas Baru'}
-          </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            ✕
-          </button>
-        </div>
-
-        {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} titleId="petugas-modal-title" maxWidth="md">
+      <ModalHeader
+        id="petugas-modal-title"
+        title={editPetugas ? 'Edit Petugas' : 'Tambah Petugas Baru'}
+        onClose={onClose}
+      />
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+        <ModalBody scrollable className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div
+              role="alert"
+              className="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-lg text-sm"
+            >
               {error}
             </div>
           )}
 
-          {/* Nama Petugas */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Petugas *</label>
-            <input
-              type="text"
-              value={formData.nama}
-              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Masukkan nama petugas"
-            />
-          </div>
-
-          {/* NIP */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">NIP *</label>
-            <input
-              type="text"
-              value={formData.nip}
-              onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Masukkan NIP"
-            />
+          {/* Nama & NIP */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="petugas-nama"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Nama Petugas{' '}
+                <span className="text-red-500 ml-0.5" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <input
+                id="petugas-nama"
+                type="text"
+                autoFocus
+                value={formData.nama}
+                onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                placeholder="Nama lengkap petugas"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="petugas-nip"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                NIP{' '}
+                <span className="text-red-500 ml-0.5" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <input
+                id="petugas-nip"
+                type="text"
+                value={formData.nip}
+                onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                placeholder="Nomor Induk Pegawai"
+              />
+            </div>
           </div>
 
           {/* Status */}
-          <div>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium text-gray-700">Aktif</span>
-            </label>
+          <div className="flex items-center gap-3 py-3 px-4 bg-gray-50 rounded-lg border border-gray-200">
+            <input
+              type="checkbox"
+              id="petugas-isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+            />
+            <div>
+              <label
+                htmlFor="petugas-isActive"
+                className="text-sm font-medium text-gray-700 cursor-pointer"
+              >
+                Petugas Aktif
+              </label>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Petugas dapat menerima penugasan jika statusnya aktif
+              </p>
+            </div>
           </div>
+        </ModalBody>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Menyimpan...' : 'Simpan'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Footer */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {loading && (
+              <span
+                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                aria-hidden="true"
+              />
+            )}
+            {loading ? 'Menyimpan...' : 'Simpan'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }

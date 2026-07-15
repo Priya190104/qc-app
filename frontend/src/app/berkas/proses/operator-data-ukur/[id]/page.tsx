@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Alert } from '@/components/ui';
+import { Button, Alert, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
+import type { ApiResponse } from '@/types';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 // Helper function to format date for input[type="date"]
@@ -94,13 +95,6 @@ interface Petugas {
   nama: string;
   nip: string;
   jabatan?: string;
-}
-
-interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
-  data?: T;
-  error?: string;
 }
 
 type TabType = 'update' | 'detail' | 'history' | 'catatan';
@@ -253,14 +247,7 @@ export default function UpdateBerkasDataUkurPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⌛</div>
-          <p className="text-gray-600">Loading data...</p>
-        </div>
-      </div>
-    );
+    return <SectionLoader />;
   }
 
   if (!berkas) {
@@ -638,3 +625,4 @@ export default function UpdateBerkasDataUkurPage() {
     </div>
   );
 }
+
