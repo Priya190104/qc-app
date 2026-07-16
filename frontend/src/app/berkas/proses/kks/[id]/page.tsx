@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Alert, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useBerkasDetail, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 interface Berkas {
@@ -73,42 +73,18 @@ export default function ValidasiBerkasKKSPage() {
   const id = params.id as string;
 
   const [activeTab, setActiveTab] = useState<TabType>('validasi');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const { data: berkas, isLoading } = useBerkasDetail(id);
+  const { invalidateBerkas } = useCacheInvalidation();
 
   // Form state
   const [decision, setDecision] = useState<DecisionType>('');
   const [notes, setNotes] = useState('');
   const [revisionTarget, setRevisionTarget] = useState('');
   const [revisionReason, setRevisionReason] = useState('');
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-        const berkasData = berkasResponse.data?.data;
-
-        if (berkasData) {
-          setBerkas(berkasData);
-        }
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchData();
-    }
-  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,7 +151,7 @@ export default function ValidasiBerkasKKSPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader />;
   }
 
@@ -651,4 +627,3 @@ export default function ValidasiBerkasKKSPage() {
     </div>
   );
 }
-

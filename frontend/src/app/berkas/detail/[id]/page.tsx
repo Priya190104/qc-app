@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, SectionLoader } from '@/components/ui';
-import { apiClient } from '@/lib/api';
+import { useBerkasDetail, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 import EditBerkasModal from '@/components/modals/EditBerkasModal';
 import { useAuthStore } from '@/stores';
@@ -305,28 +305,10 @@ export default function BerkasDetailPage() {
   const isAdmin = currentUser?.roles?.some((r) => r.name === 'administrator') ?? false;
 
   const [activeTab, setActiveTab] = useState<TabType>('detail');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchBerkasDetail();
-  }, [berkasId]);
-
-  const fetchBerkasDetail = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiClient.get<any>(`/berkas/${berkasId}`);
-      const berkasData = response.data?.data || response.data;
-      setBerkas(berkasData as Berkas);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal memuat detail berkas');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: berkas, isLoading, error } = useBerkasDetail(berkasId);
+  const { invalidateBerkas } = useCacheInvalidation();
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '—';
@@ -341,7 +323,7 @@ export default function BerkasDetailPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader label="Memuat data berkas..." />;
   }
 
@@ -349,7 +331,9 @@ export default function BerkasDetailPage() {
     return (
       <div className="max-w-lg space-y-4">
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm font-medium text-red-700">{error || 'Berkas tidak ditemukan'}</p>
+          <p className="text-sm font-medium text-red-700">
+            {(error as Error)?.message || 'Berkas tidak ditemukan'}
+          </p>
         </div>
         <Link href="/berkas/all">
           <Button variant="outline">← Kembali</Button>
@@ -389,7 +373,7 @@ export default function BerkasDetailPage() {
           onClose={() => setEditModalOpen(false)}
           onSuccess={() => {
             setEditModalOpen(false);
-            fetchBerkasDetail();
+            invalidateBerkas();
           }}
           berkas={berkas}
         />

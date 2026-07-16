@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Alert,
   PageHeader,
@@ -11,7 +11,7 @@ import {
   LoadingSpinner,
 } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useDashboardMetrics, useDashboardPetugasStats } from '@/hooks/useQueryHooks';
 
 interface DashboardMetrics {
   summary: {
@@ -60,10 +60,10 @@ interface BerkasSummaryItem {
 }
 
 export default function DashboardPage() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [petugasStats, setPetugasStats] = useState<PetugasStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: metrics, isLoading: metricsLoading, error: metricsError } = useDashboardMetrics();
+  const { data: petugasStats, isLoading: petugasLoading } = useDashboardPetugasStats();
+
+  const loading = metricsLoading || petugasLoading;
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,37 +95,6 @@ export default function DashboardPage() {
       setModalLoading(false);
     }
   };
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch dashboard metrics and petugas stats in parallel
-        const [metricsResponse, petugasResponse] = await Promise.all([
-          apiClient.get<ApiResponse<DashboardMetrics>>('/dashboard/metrics'),
-          apiClient.get<ApiResponse<PetugasStats>>('/dashboard/petugas-stats'),
-        ]);
-
-        if (metricsResponse.data?.data) {
-          setMetrics(metricsResponse.data.data);
-        }
-
-        if (petugasResponse.data?.data) {
-          setPetugasStats(petugasResponse.data.data);
-        }
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.message || err.message || 'Failed to load dashboard';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
 
   if (loading) {
     return <SectionLoader label="Memuat dashboard..." />;
@@ -197,7 +166,14 @@ export default function DashboardPage() {
       </Modal>
       <PageHeader title="Dashboard" description="Monitoring status dan performa sistem QC berkas" />
 
-      {error && <Alert type="error" title="Error" message={error} className="mb-6" />}
+      {metricsError && (
+        <Alert
+          type="error"
+          title="Error"
+          message={(metricsError as Error)?.message ?? 'Gagal memuat dashboard'}
+          className="mb-6"
+        />
+      )}
 
       {/* Dashboard Summary */}
       {metrics && (

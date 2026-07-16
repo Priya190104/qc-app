@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Alert, PageHeader, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import { Petugas, ApiResponse } from '@/types';
+import { Petugas } from '@/types';
+import { useBerkasDetail, usePetugasList, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 interface Berkas {
@@ -78,59 +79,20 @@ export default function PilihKKSPage() {
   const id = params.id as string;
 
   const [activeTab, setActiveTab] = useState<TabType>('pemilihan');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [kksList, setKksList] = useState<Petugas[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
   const [selectedKKS, setSelectedKKS] = useState('');
 
+  const { data: berkas, isLoading } = useBerkasDetail(id);
+  const { data: kksList } = usePetugasList('KKS');
+  const { invalidateBerkas } = useCacheInvalidation();
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch berkas details
-        const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-        const berkasData = berkasResponse.data?.data;
-
-        if (berkasData) {
-          setBerkas(berkasData);
-          if (berkasData.petugasKKSId) {
-            setSelectedKKS(berkasData.petugasKKSId);
-          }
-        }
-
-        // Fetch petugas KKS - using /petugas endpoint with departemen filter
-        const petugasResponse = await apiClient.get<ApiResponse<any>>(
-          '/petugas?departemen=KKS&limit=100'
-        );
-
-        let petugasData: Petugas[] = [];
-        if (petugasResponse.data?.data?.data) {
-          petugasData = Array.isArray(petugasResponse.data.data.data)
-            ? petugasResponse.data.data.data
-            : [];
-        } else if (petugasResponse.data?.data) {
-          petugasData = Array.isArray(petugasResponse.data.data) ? petugasResponse.data.data : [];
-        }
-
-        setKksList(petugasData);
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchData();
+    if (berkas && (berkas as any).petugasKKSId) {
+      setSelectedKKS((berkas as any).petugasKKSId);
     }
-  }, [id]);
+  }, [berkas]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,13 +112,7 @@ export default function PilihKKSPage() {
       });
 
       setSuccess('KKS berhasil ditugaskan. Berkas telah diteruskan ke KKS.');
-
-      // Refresh berkas data
-      const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-      const berkasData = berkasResponse.data?.data;
-      if (berkasData) {
-        setBerkas(berkasData);
-      }
+      invalidateBerkas();
 
       // Redirect after 2 seconds
       setTimeout(() => {
@@ -408,7 +364,7 @@ export default function PilihKKSPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader />;
   }
 

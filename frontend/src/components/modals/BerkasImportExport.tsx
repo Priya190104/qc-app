@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Download, Upload, Loader2 } from 'lucide-react';
 import { Button, Alert } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 import { BerkasFilterValues } from '@/components/filters/BerkasFilter';
@@ -142,13 +143,19 @@ export default function BerkasImportExport({
           <Button
             onClick={handleExport}
             disabled={exporting}
-            className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            variant="outline"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap gap-1.5"
           >
-            {exporting ? '⏳ Mengunduh...' : '📥 Unduh Excel'}
+            {exporting ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Download size={15} strokeWidth={2.2} />
+            )}
+            {exporting ? 'Mengunduh...' : 'Unduh Excel'}
           </Button>
           {hasActiveFilters && (
             <span
-              className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-orange-400 rounded-full border-2 border-white"
+              className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-orange-400 rounded-full border-2 border-white"
               title="Filter aktif — hanya data yang difilter yang akan diunduh"
             />
           )}
@@ -167,13 +174,19 @@ export default function BerkasImportExport({
           <label htmlFor="file-import">
             <Button
               disabled={importing}
-              className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              variant="outline"
+              className="border-green-600 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap gap-1.5"
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById('file-import')?.click();
               }}
             >
-              {importing ? '⏳ Mengupload...' : '📤 Unggah Excel'}
+              {importing ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <Upload size={15} strokeWidth={2.2} />
+              )}
+              {importing ? 'Mengupload...' : 'Unggah Excel'}
             </Button>
           </label>
         </div>

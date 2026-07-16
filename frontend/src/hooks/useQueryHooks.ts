@@ -37,7 +37,7 @@ export const queryKeys = {
     byStatus: (status: string) => ['berkas', 'byStatus', status] as const,
   },
   petugas: {
-    list: () => ['petugas', 'list'] as const,
+    list: (departemen?: string) => ['petugas', 'list', departemen] as const,
     detail: (id: string) => ['petugas', 'detail', id] as const,
   },
   users: {
@@ -86,8 +86,11 @@ interface BerkasListFilters {
   status?: string;
   desa?: string;
   kecamatan?: string;
-  tahunBerkas?: number;
+  tahunBerkas?: number | null;
   includeClosed?: boolean;
+  revisionTarget?: string;
+  tanggalDari?: string;
+  tanggalSampai?: string;
 }
 
 export function useBerkasList(filters: BerkasListFilters = {}) {
@@ -136,12 +139,19 @@ export function useBerkasHistory(berkasId: string) {
 // PETUGAS HOOKS
 // ====================================================================
 
-export function usePetugasList() {
+export function usePetugasList(departemen?: string) {
   return useQuery({
-    queryKey: queryKeys.petugas.list(),
+    queryKey: queryKeys.petugas.list(departemen),
     queryFn: async () => {
-      const res = await apiClient.get<any>('/petugas');
-      return res.data?.data ?? [];
+      const params = new URLSearchParams({ limit: '100' });
+      if (departemen) params.append('departemen', departemen);
+      const res = await apiClient.get<any>(`/petugas?${params}`);
+      const rawData = res.data?.data;
+      // Normalize: handle both paginated { data: [...] } and direct array
+      if (rawData && typeof rawData === 'object' && !Array.isArray(rawData) && 'data' in rawData) {
+        return Array.isArray(rawData.data) ? rawData.data : [];
+      }
+      return Array.isArray(rawData) ? rawData : [];
     },
     staleTime: 5 * 60_000, // Petugas list rarely changes: 5 minutes
   });

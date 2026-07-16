@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Alert, PageHeader, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useBerkasDetail, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 interface Berkas {
@@ -79,11 +79,12 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
   const id = params.id as string;
 
   const [activeTab, setActiveTab] = useState<TabType>('validasi');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const { data: berkas, isLoading } = useBerkasDetail(id);
+  const { invalidateBerkas } = useCacheInvalidation();
 
   // Form state - Petugas Pemetaan mengisi data hasil pemetaan
   const [formData, setFormData] = useState({
@@ -96,61 +97,38 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
   >([{ luasHasilUkur: '', nib: '', nibel: '', noSU: '' }]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch berkas details
-        const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-        const berkasData = berkasResponse.data?.data;
-
-        if (berkasData) {
-          setBerkas(berkasData);
-          const count = berkasData.jumlahBidang || 1;
-          // Initialize form with existing data
-          setFormData({
-            jumlahBidang: berkasData.jumlahBidang?.toString() || '',
-            notes: '',
-          });
-          // Build bidangItems array from saved data
-          if (berkasData.bidangItems && berkasData.bidangItems.length > 0) {
-            setBidangItems(
-              berkasData.bidangItems.map((item) => ({
-                luasHasilUkur: item.luasHasilUkur?.toString() ?? '',
-                nib: item.nib ?? '',
-                nibel: item.nibel ?? '',
-                noSU: item.noSU ?? '',
-              }))
-            );
-          } else {
-            // Fallback: single row from legacy single-value fields
-            setBidangItems(
-              Array.from({ length: count }, (_, i) =>
-                i === 0
-                  ? {
-                      luasHasilUkur: berkasData.luasHasilUkur?.toString() ?? '',
-                      nib: berkasData.nib ?? '',
-                      nibel: berkasData.nibel ?? '',
-                      noSU: berkasData.noSU ?? '',
-                    }
-                  : { luasHasilUkur: '', nib: '', nibel: '', noSU: '' }
-              )
-            );
-          }
-        }
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
+    if (berkas) {
+      const b = berkas as any;
+      const count = b.jumlahBidang || 1;
+      setFormData({
+        jumlahBidang: b.jumlahBidang?.toString() || '',
+        notes: '',
+      });
+      if (b.bidangItems && b.bidangItems.length > 0) {
+        setBidangItems(
+          b.bidangItems.map((item: any) => ({
+            luasHasilUkur: item.luasHasilUkur?.toString() ?? '',
+            nib: item.nib ?? '',
+            nibel: item.nibel ?? '',
+            noSU: item.noSU ?? '',
+          }))
+        );
+      } else {
+        setBidangItems(
+          Array.from({ length: count }, (_: any, i: number) =>
+            i === 0
+              ? {
+                  luasHasilUkur: b.luasHasilUkur?.toString() ?? '',
+                  nib: b.nib ?? '',
+                  nibel: b.nibel ?? '',
+                  noSU: b.noSU ?? '',
+                }
+              : { luasHasilUkur: '', nib: '', nibel: '', noSU: '' }
+          )
+        );
       }
-    };
-
-    if (id) {
-      fetchData();
     }
-  }, [id]);
+  }, [berkas]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -263,7 +241,7 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
     return labelMap[status] || status;
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader />;
   }
 
@@ -743,4 +721,3 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
     </div>
   );
 }
-

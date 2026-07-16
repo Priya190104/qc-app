@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Alert, PageHeader, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useBerkasDetail, usePetugasList, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 interface Berkas {
@@ -69,12 +69,14 @@ export default function ValidasiBerkasPetugasUkurPage() {
   const id = params.id as string;
 
   const [activeTab, setActiveTab] = useState<TabType>('update');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [petugasList, setPetugasList] = useState<Petugas[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const { data: berkas, isLoading } = useBerkasDetail(id);
+  const { data: allPetugas } = usePetugasList('Petugas Ukur');
+  const petugasList: Petugas[] = allPetugas ?? [];
+  const { invalidateBerkas } = useCacheInvalidation();
 
   // Form state - Petugas Ukur mengelola PU Lapang dan validasi
   const [formData, setFormData] = useState({
@@ -83,47 +85,13 @@ export default function ValidasiBerkasPetugasUkurPage() {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch berkas details
-        const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-        const berkasData = berkasResponse.data?.data;
-
-        if (berkasData) {
-          setBerkas(berkasData);
-          // Populate form with existing data
-          setFormData({
-            puLapangId: berkasData.puLapangId || '',
-            notes: '',
-          });
-        }
-
-        // Fetch petugas list - filter hanya Petugas Ukur untuk PU Lapang
-        const petugasResponse = await apiClient.get<ApiResponse<any>>('/petugas', {
-          params: {
-            departemen: 'Petugas Ukur',
-            limit: 100, // Ambil semua petugas ukur
-          },
-        });
-        const petugasData = petugasResponse.data?.data?.data || petugasResponse.data?.data;
-        if (Array.isArray(petugasData)) {
-          setPetugasList(petugasData);
-        }
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchData();
+    if (berkas) {
+      setFormData({
+        puLapangId: (berkas as any).puLapangId || '',
+        notes: '',
+      });
     }
-  }, [id]);
+  }, [berkas]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -161,7 +129,7 @@ export default function ValidasiBerkasPetugasUkurPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader />;
   }
 
@@ -487,4 +455,3 @@ export default function ValidasiBerkasPetugasUkurPage() {
     </div>
   );
 }
-

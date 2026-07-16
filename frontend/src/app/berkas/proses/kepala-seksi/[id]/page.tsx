@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Alert, PageHeader, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useBerkasDetail, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 type TabType = 'validasi' | 'detail' | 'history' | 'catatan';
@@ -75,11 +75,12 @@ export default function DetailKepalaSeksiPage() {
   const id = params?.id as string;
 
   const [activeTab, setActiveTab] = useState<TabType>('validasi');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const { data: berkas, isLoading } = useBerkasDetail(id);
+  const { invalidateBerkas } = useCacheInvalidation();
 
   // Form state
   const [decision, setDecision] = useState<DecisionType>('');
@@ -88,24 +89,10 @@ export default function DetailKepalaSeksiPage() {
   const [revisionReason, setRevisionReason] = useState('');
 
   useEffect(() => {
-    const fetchBerkas = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-        setBerkas(response.data?.data || null);
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to load berkas';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchBerkas();
+    if (berkas) {
+      // Form initialized from berkas data via React Query
     }
-  }, [id]);
+  }, [berkas]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,7 +145,7 @@ export default function DetailKepalaSeksiPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader />;
   }
 
@@ -656,4 +643,3 @@ export default function DetailKepalaSeksiPage() {
     </div>
   );
 }
-

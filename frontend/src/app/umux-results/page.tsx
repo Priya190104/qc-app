@@ -119,15 +119,24 @@ function fmtMonthLabel(d: Date): string {
 }
 
 function scoreRingClass(score: number): string {
-  if (score >= 75) return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
+  if (score >= 85) return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
+  if (score >= 70) return 'bg-teal-50 text-teal-700 ring-1 ring-teal-200';
   if (score >= 50) return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200';
   return 'bg-red-50 text-red-700 ring-1 ring-red-200';
 }
 
 function scoreBarClass(score: number): string {
-  if (score >= 75) return 'bg-emerald-500';
+  if (score >= 85) return 'bg-emerald-500';
+  if (score >= 70) return 'bg-teal-500';
   if (score >= 50) return 'bg-amber-500';
   return 'bg-red-500';
+}
+
+function scoreLabel(score: number): string {
+  if (score >= 85) return 'Sangat Puas';
+  if (score >= 70) return 'Puas';
+  if (score >= 50) return 'Cukup Puas';
+  return 'Tidak Puas';
 }
 
 // ─── QuestionBarChart ─────────────────────────────────────────────────────────
@@ -291,14 +300,15 @@ function TrendLineChart({ data }: { data: MonthPoint[] }) {
         x={pad.left}
         y={getY(100)}
         width={chartW}
-        height={getY(75) - getY(100)}
+        height={getY(85) - getY(100)}
         fill="#f0fdf4"
       />
-      <rect x={pad.left} y={getY(75)} width={chartW} height={getY(50) - getY(75)} fill="#fffbeb" />
+      <rect x={pad.left} y={getY(85)} width={chartW} height={getY(70) - getY(85)} fill="#f0fdfa" />
+      <rect x={pad.left} y={getY(70)} width={chartW} height={getY(50) - getY(70)} fill="#fffbeb" />
       <rect x={pad.left} y={getY(50)} width={chartW} height={getY(0) - getY(50)} fill="#fff7f7" />
 
       {/* Gridlines */}
-      {[0, 25, 50, 75, 100].map((v) => {
+      {[0, 50, 70, 85, 100].map((v) => {
         const y = getY(v);
         return (
           <g key={v}>
@@ -311,14 +321,17 @@ function TrendLineChart({ data }: { data: MonthPoint[] }) {
       })}
 
       {/* Zone labels */}
-      <text x={W - pad.right + 2} y={getY(87) + 3} fontSize={8} fill="#86efac">
-        B
+      <text x={W - pad.right + 2} y={getY(92) + 3} fontSize={8} fill="#6ee7b7">
+        SP
       </text>
-      <text x={W - pad.right + 2} y={getY(62) + 3} fontSize={8} fill="#fcd34d">
-        S
+      <text x={W - pad.right + 2} y={getY(77) + 3} fontSize={8} fill="#5eead4">
+        P
+      </text>
+      <text x={W - pad.right + 2} y={getY(60) + 3} fontSize={8} fill="#fcd34d">
+        CP
       </text>
       <text x={W - pad.right + 2} y={getY(25) + 3} fontSize={8} fill="#fca5a5">
-        R
+        TP
       </text>
 
       {validPts.length === 0 ? (
@@ -477,11 +490,13 @@ function DetailModal({ entry, onClose }: { entry: UmuxEntry; onClose: () => void
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Skor UMUX</p>
             <span
               className={`text-2xl font-bold tabular-nums ${
-                entry.score >= 75
+                entry.score >= 85
                   ? 'text-emerald-700'
-                  : entry.score >= 50
-                    ? 'text-amber-700'
-                    : 'text-red-600'
+                  : entry.score >= 70
+                    ? 'text-teal-700'
+                    : entry.score >= 50
+                      ? 'text-amber-700'
+                      : 'text-red-600'
               }`}
             >
               {entry.score}
@@ -793,11 +808,13 @@ export default function UmuxResultsPage() {
             <div className="sm:pl-5">
               <p
                 className={`text-2xl font-semibold leading-none tabular-nums ${
-                  summary.avg >= 75
+                  summary.avg >= 85
                     ? 'text-emerald-700'
-                    : summary.avg >= 50
-                      ? 'text-amber-700'
-                      : 'text-red-600'
+                    : summary.avg >= 70
+                      ? 'text-teal-700'
+                      : summary.avg >= 50
+                        ? 'text-amber-700'
+                        : 'text-red-600'
                 }`}
               >
                 {summary.avg}
@@ -825,9 +842,7 @@ export default function UmuxResultsPage() {
         {/* Bar chart */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h2 className="text-sm font-semibold text-gray-900">Rata-rata Skor per Pertanyaan</h2>
-          <p className="text-xs text-gray-400 mt-0.5 mb-4">
-            Skala Likert 1–7 · *Pertanyaan negatif: skor rendah = lebih baik
-          </p>
+          <p className="text-xs text-gray-400 mt-0.5 mb-4">Skala Likert 1–7.</p>
           <QuestionBarChart avgs={questionAvgs} />
           <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-400">
             <span className="flex items-center gap-1.5">
@@ -849,15 +864,19 @@ export default function UmuxResultsPage() {
           <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-400">
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-1.5 rounded bg-emerald-300 inline-block" />
-              ≥75 Baik
+              85–100 Sangat Puas
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-1.5 rounded bg-teal-300 inline-block" />
+              70–84 Puas
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-1.5 rounded bg-amber-300 inline-block" />
-              50–74 Sedang
+              50–69 Cukup Puas
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-1.5 rounded bg-red-200 inline-block" />
-              &lt;50 Perlu Perhatian
+              &lt;50 Tidak Puas
             </span>
           </div>
         </div>

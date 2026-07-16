@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button, Alert, Pagination, PageHeader } from '@/components/ui';
 import { StatusBadge, TableSkeleton, EmptyState } from '@/components/berkas';
 import BerkasFilter, { BerkasFilterValues } from '@/components/filters/BerkasFilter';
-import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useBerkasList } from '@/hooks/useQueryHooks';
 
 interface Berkas {
   id: string;
@@ -26,111 +25,28 @@ interface Berkas {
 const COLS = 8;
 
 export default function OperatorDataPemetaanPage() {
-  const [berkasList, setBerkasList] = useState<Berkas[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+  const [filters, setFilters] = useState<BerkasFilterValues>({});
   const itemsPerPage = 10;
 
-  // Filter state
-  const [filters, setFilters] = useState<BerkasFilterValues>({});
+  const { data, isLoading, error } = useBerkasList({
+    status: 'DI_OPERATOR_DATA_PEMETAAN',
+    page: currentPage,
+    limit: itemsPerPage,
+    ...filters,
+  });
 
-  const fetchBerkas = async (page = 1, filterParams: BerkasFilterValues = {}) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: itemsPerPage.toString(),
-        status: 'DI_OPERATOR_DATA_PEMETAAN',
-      });
-
-      if (filterParams.search) params.append('search', filterParams.search);
-      if (filterParams.desa) params.append('desa', filterParams.desa);
-      if (filterParams.kecamatan) params.append('kecamatan', filterParams.kecamatan);
-      if (filterParams.tahunBerkas)
-        params.append('tahunBerkas', filterParams.tahunBerkas.toString());
-
-      const response = await apiClient.get<ApiResponse<any>>(`/berkas?${params.toString()}`);
-
-      let data = response.data?.data;
-
-      if (data && typeof data === 'object' && 'data' in data) {
-        // Paginated response
-        setBerkasList(Array.isArray(data.data) ? data.data : []);
-        setTotalPages(data.pagination?.totalPages || 1);
-        setTotalItems(data.pagination?.total || 0);
-        setCurrentPage(data.pagination?.page || page);
-      } else {
-        // Non-paginated response
-        const allData = Array.isArray(data) ? data : [];
-        let filteredData = allData.filter((b: Berkas) => b.status === 'DI_OPERATOR_DATA_PEMETAAN');
-
-        // Apply client-side filtering
-        if (filterParams.search) {
-          filteredData = filteredData.filter(
-            (b: Berkas) =>
-              b.nomor?.toLowerCase().includes(filterParams.search!.toLowerCase()) ||
-              b.namaPemohon?.toLowerCase().includes(filterParams.search!.toLowerCase())
-          );
-        }
-        if (filterParams.desa) {
-          filteredData = filteredData.filter((b: Berkas) =>
-            b.desa?.toLowerCase().includes(filterParams.desa!.toLowerCase())
-          );
-        }
-        if (filterParams.kecamatan) {
-          filteredData = filteredData.filter((b: Berkas) =>
-            b.kecamatan?.toLowerCase().includes(filterParams.kecamatan!.toLowerCase())
-          );
-        }
-        if (filterParams.tahunBerkas) {
-          filteredData = filteredData.filter((b: Berkas) => {
-            const berkasDate = b.tanggalBerkas ? new Date(b.tanggalBerkas) : null;
-            return berkasDate?.getFullYear() === filterParams.tahunBerkas;
-          });
-        }
-
-        // Apply pagination
-        const total = filteredData.length;
-        const startIndex = (page - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const paginatedData = filteredData.slice(startIndex, endIndex);
-
-        setBerkasList(paginatedData);
-        setTotalItems(total);
-        setTotalPages(Math.ceil(total / itemsPerPage));
-        setCurrentPage(page);
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to load berkas';
-      setError(errorMessage);
-      setBerkasList([]);
-      setTotalPages(1);
-      setTotalItems(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBerkas(1, filters);
-  }, []);
+  const berkasList: Berkas[] = data?.data ?? [];
+  const totalPages = data?.pagination?.totalPages ?? 1;
+  const totalItems = data?.pagination?.total ?? 0;
 
   const handleFilterChange = (newFilters: BerkasFilterValues) => {
     setFilters(newFilters);
     setCurrentPage(1);
-    fetchBerkas(1, newFilters);
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchBerkas(page, filters);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -145,7 +61,13 @@ export default function OperatorDataPemetaanPage() {
         ]}
       />
 
-      {error && <Alert type="error" title="Gagal memuat data" message={error} />}
+      {error && (
+        <Alert
+          type="error"
+          title="Gagal memuat data"
+          message={(error as Error)?.message ?? 'Gagal memuat data'}
+        />
+      )}
 
       <BerkasFilter onFilterChange={handleFilterChange} />
 
@@ -180,7 +102,7 @@ export default function OperatorDataPemetaanPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {loading ? (
+            {isLoading ? (
               <TableSkeleton cols={COLS} />
             ) : berkasList.length === 0 ? (
               <EmptyState
@@ -256,7 +178,7 @@ export default function OperatorDataPemetaanPage() {
         </table>
       </div>
 
-      {!loading && totalItems > 0 && (
+      {!isLoading && totalItems > 0 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -268,8 +190,3 @@ export default function OperatorDataPemetaanPage() {
     </div>
   );
 }
-
-
-
-
-

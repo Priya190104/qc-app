@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Alert, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useBerkasDetail, usePetugasList, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 // Helper function to format date for input[type="date"]
@@ -104,14 +104,15 @@ export default function UpdateBerkasDataUkurPage() {
   const id = params.id as string;
 
   const [activeTab, setActiveTab] = useState<TabType>('update');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [petugasList, setPetugasList] = useState<Petugas[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingPetugas, setLoadingPetugas] = useState(false);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const { data: berkas, isLoading } = useBerkasDetail(id);
+  const { data: allPetugas } = usePetugasList('Petugas Ukur');
+  const petugasList: Petugas[] = allPetugas ?? [];
+  const { invalidateBerkas } = useCacheInvalidation();
 
   // Form state - Operator Data Ukur mengelola field teknis pengukuran
   const [formData, setFormData] = useState({
@@ -122,57 +123,15 @@ export default function UpdateBerkasDataUkurPage() {
   });
 
   useEffect(() => {
-    const fetchBerkas = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-        const berkasData = berkasResponse.data?.data;
-
-        if (berkasData) {
-          setBerkas(berkasData);
-          setFormData({
-            petugasUkurId: berkasData.petugasUkurId || '',
-            noSTP: berkasData.noSTP || '',
-            tglSTP: formatDateForInput(berkasData.tglSTP),
-            noSHATNIBEL: berkasData.noSHATNIBEL || '',
-          });
-        }
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchPetugas = async () => {
-      try {
-        setLoadingPetugas(true);
-        const petugasResponse = await apiClient.get<ApiResponse<any>>('/petugas', {
-          params: {
-            departemen: 'Petugas Ukur',
-            isActive: true,
-            limit: 100,
-          },
-        });
-        const petugasData = petugasResponse.data?.data?.data || [];
-        if (Array.isArray(petugasData)) {
-          setPetugasList(petugasData);
-        }
-      } catch (err: any) {
-        console.error('Failed to load petugas ukur:', err);
-      } finally {
-        setLoadingPetugas(false);
-      }
-    };
-
-    if (id) {
-      fetchBerkas();
-      fetchPetugas();
+    if (berkas) {
+      setFormData({
+        petugasUkurId: (berkas as any).petugasUkurId || '',
+        noSTP: (berkas as any).noSTP || '',
+        tglSTP: formatDateForInput((berkas as any).tglSTP),
+        noSHATNIBEL: (berkas as any).noSHATNIBEL || '',
+      });
     }
-  }, [id]);
+  }, [berkas]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -246,7 +205,7 @@ export default function UpdateBerkasDataUkurPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader />;
   }
 
@@ -625,4 +584,3 @@ export default function UpdateBerkasDataUkurPage() {
     </div>
   );
 }
-

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Alert, PageHeader, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
-import type { ApiResponse } from '@/types';
+import { useBerkasDetail, usePetugasList, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
 
 interface Petugas {
@@ -80,13 +80,14 @@ export default function UpdateBerkasDataPemetaanPage() {
   const id = params.id as string;
 
   const [activeTab, setActiveTab] = useState<TabType>('update');
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [petugasList, setPetugasList] = useState<Petugas[]>([]);
-  const [loadingPetugas, setLoadingPetugas] = useState(false);
+
+  const { data: berkas, isLoading } = useBerkasDetail(id);
+  const { data: allPetugas } = usePetugasList('Petugas Pemetaan');
+  const petugasList: Petugas[] = allPetugas ?? [];
+  const { invalidateBerkas } = useCacheInvalidation();
 
   // Form state - Operator Data Pemetaan hanya mengelola penugasan Petugas Pemetaan
   const [formData, setFormData] = useState({
@@ -94,53 +95,12 @@ export default function UpdateBerkasDataPemetaanPage() {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch berkas details
-        const berkasResponse = await apiClient.get<ApiResponse<Berkas>>(`/berkas/${id}`);
-        const berkasData = berkasResponse.data?.data;
-
-        if (berkasData) {
-          setBerkas(berkasData);
-          // Populate form with existing data
-          setFormData({
-            petugasPemetaanId: berkasData.petugasPemetaanId || '',
-          });
-        }
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to load data';
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchPetugas = async () => {
-      try {
-        setLoadingPetugas(true);
-        const response = await apiClient.get<ApiResponse<{ data: Petugas[] }>>('/petugas', {
-          params: {
-            departemen: 'Petugas Pemetaan',
-            isActive: true,
-            limit: 100,
-          },
-        });
-        setPetugasList(response.data?.data?.data || []);
-      } catch (err: any) {
-        console.error('Failed to load petugas:', err);
-      } finally {
-        setLoadingPetugas(false);
-      }
-    };
-
-    if (id) {
-      fetchData();
-      fetchPetugas();
+    if (berkas) {
+      setFormData({
+        petugasPemetaanId: (berkas as any).petugasPemetaanId || '',
+      });
     }
-  }, [id]);
+  }, [berkas]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -177,7 +137,7 @@ export default function UpdateBerkasDataPemetaanPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <SectionLoader />;
   }
 
@@ -686,4 +646,3 @@ export default function UpdateBerkasDataPemetaanPage() {
     </div>
   );
 }
-
