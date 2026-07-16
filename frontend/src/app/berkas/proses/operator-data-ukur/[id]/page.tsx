@@ -110,7 +110,7 @@ export default function UpdateBerkasDataUkurPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const { data: berkas, isLoading } = useBerkasDetail(id);
-  const { data: allPetugas } = usePetugasList('Petugas Ukur');
+  const { data: allPetugas, isLoading: loadingPetugas } = usePetugasList('Petugas Ukur');
   const petugasList: Petugas[] = allPetugas ?? [];
   const { invalidateBerkas } = useCacheInvalidation();
 

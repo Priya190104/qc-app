@@ -85,7 +85,7 @@ export default function UpdateBerkasDataPemetaanPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const { data: berkas, isLoading } = useBerkasDetail(id);
-  const { data: allPetugas } = usePetugasList('Petugas Pemetaan');
+  const { data: allPetugas, isLoading: loadingPetugas } = usePetugasList('Petugas Pemetaan');
   const petugasList: Petugas[] = allPetugas ?? [];
   const { invalidateBerkas } = useCacheInvalidation();
 
