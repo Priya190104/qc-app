@@ -379,6 +379,21 @@ export default function PilihKKSPage() {
     );
   }
 
+  if ((berkas as any).status !== 'PEMILIHAN_KKS') {
+    return (
+      <div className="space-y-6">
+        <Alert
+          type="warning"
+          title="Status Berkas Tidak Sesuai"
+          message={`Berkas ini sudah dalam status "${(berkas as any).status}" dan tidak dapat diproses di halaman Operator Data Berkas.`}
+        />
+        <Link href="/berkas/proses/operator-data-berkas">
+          <Button variant="outline">← Kembali ke Daftar</Button>
+        </Link>
+      </div>
+    );
+  }
+
   const isKKSAssigned = berkas.status === 'DI_KKS' && berkas.petugasKKS;
 
   return (

@@ -160,6 +160,21 @@ export default function DetailKepalaSeksiPage() {
     );
   }
 
+  if ((berkas as any).status !== 'DI_KEPALA_SEKSI') {
+    return (
+      <div className="space-y-6">
+        <Alert
+          type="warning"
+          title="Status Berkas Tidak Sesuai"
+          message={`Berkas ini sudah dalam status "${(berkas as any).status}" dan tidak dapat diproses di halaman Kepala Seksi.`}
+        />
+        <Link href="/berkas/proses/kepala-seksi">
+          <Button variant="outline">← Kembali ke Daftar</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader

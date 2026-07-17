@@ -33,7 +33,7 @@ export class BerkasImportExportController {
     @Query('tahunBerkas') tahunBerkas?: string,
     @Query('tanggalDari') tanggalDari?: string,
     @Query('tanggalSampai') tanggalSampai?: string,
-    @Res() res?: Response
+    @Res() res: Response
   ) {
     try {
       const berkasIds = ids ? ids.split(',').map((id) => id.trim()) : undefined;
@@ -47,18 +47,16 @@ export class BerkasImportExportController {
         tanggalSampai,
       });
 
-      if (res) {
-        res.setHeader(
-          'Content-Type',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        );
-        res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
-        res.send(result.data);
-      }
-
-      return result;
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+      res.send(result.data);
     } catch (error: any) {
-      throw error;
+      if (!res.headersSent) {
+        res.status(400).json({ success: false, message: `Export gagal: ${error.message}` });
+      }
     }
   }
 

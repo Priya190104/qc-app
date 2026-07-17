@@ -56,11 +56,13 @@ export default function BerkasImportExport({
         params.append('tanggalSampai', currentFilters.tanggalSampai);
       const query = params.toString() ? `?${params.toString()}` : '';
 
+      // Use 'arraybuffer' — more reliable than 'blob' for binary data across
+      // browsers and preserved correctly when the interceptor retries on 401.
       const response = await apiClient.get(`/berkas/import-export/export${query}`, {
-        responseType: 'blob',
+        responseType: 'arraybuffer',
       });
 
-      const blob = new Blob([response.data as any], {
+      const blob = new Blob([response.data as ArrayBuffer], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
       const url = window.URL.createObjectURL(blob);
@@ -77,8 +79,12 @@ export default function BerkasImportExport({
       a.download = `Data_Berkas${dateSuffix}_${new Date().getTime()}.xlsx`;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Delay cleanup so the browser has time to start reading the blob
+      // before the URL is revoked — prevents intermittent corrupt downloads.
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 200);
 
       setSuccess(
         hasActiveFilters ? 'Berkas sesuai filter berhasil diunduh' : 'Semua berkas berhasil diunduh'

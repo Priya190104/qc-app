@@ -152,6 +152,21 @@ export default function UpdateBerkasDataPemetaanPage() {
     );
   }
 
+  if ((berkas as any).status !== 'DI_OPERATOR_DATA_PEMETAAN') {
+    return (
+      <div className="space-y-6">
+        <Alert
+          type="warning"
+          title="Status Berkas Tidak Sesuai"
+          message={`Berkas ini sudah dalam status "${(berkas as any).status}" dan tidak dapat diproses di halaman Operator Data Pemetaan.`}
+        />
+        <Link href="/berkas/proses/operator-data-pemetaan">
+          <Button variant="outline">← Kembali ke Daftar</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader

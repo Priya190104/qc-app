@@ -58,7 +58,9 @@ class APIClient {
             return new Promise((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });
             })
-              .then(() => this.instance(originalRequest))
+              .then(() =>
+                this.instance({ ...originalRequest, responseType: originalRequest.responseType })
+              )
               .catch(() => Promise.reject(error));
           }
 
@@ -71,18 +73,32 @@ class APIClient {
               throw new Error('No refresh token available');
             }
 
-            const response = await this.instance.post('/auth/refresh', {
-              refreshToken,
-            });
+            // Use a plain axios instance for the refresh request so it never
+            // inherits binary responseType from the original request config.
+            const response = await this.instance.post(
+              '/auth/refresh',
+              {
+                refreshToken,
+              },
+              { responseType: 'json' }
+            );
 
             const { accessToken, refreshToken: newRefreshToken } = response.data
               .data as AuthResponse;
             this.setTokens(accessToken, newRefreshToken);
 
-            this.failedQueue.forEach(({ resolve }) => resolve(this.instance(originalRequest)));
+            // Explicitly spread to preserve responseType on each queued retry.
+            this.failedQueue.forEach(({ resolve }) =>
+              resolve(
+                this.instance({ ...originalRequest, responseType: originalRequest.responseType })
+              )
+            );
             this.failedQueue = [];
 
-            return this.instance(originalRequest);
+            return this.instance({
+              ...originalRequest,
+              responseType: originalRequest.responseType,
+            });
           } catch (err) {
             this.failedQueue = [];
             this.clearTokens();

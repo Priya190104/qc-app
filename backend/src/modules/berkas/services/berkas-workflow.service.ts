@@ -80,6 +80,14 @@ export class BerkasWorkflowService {
       throw new NotFoundException('Berkas tidak ditemukan');
     }
 
+    // Idempotent: jika status sudah di tujuan, kembalikan tanpa error (cegah double-submit)
+    if (berkas.status === transitionDto.newStatus) {
+      return this.prisma.berkas.findUniqueOrThrow({
+        where: { id: berkasId },
+        include: { createdBy: true, petugasUkur: true, puLapang: true, petugasKKS: true },
+      });
+    }
+
     if (!isValidTransition(berkas.status, transitionDto.newStatus)) {
       throw new BadRequestException(
         `Transisi dari ${berkas.status} ke ${transitionDto.newStatus} tidak diizinkan`
@@ -177,6 +185,15 @@ export class BerkasWorkflowService {
 
     if (!isRevision && berkas.status !== BerkasStatus.DI_PETUGAS_UKUR) {
       throw new BadRequestException('Berkas tidak dalam status yang sesuai');
+    }
+
+    // Jika revisi, pastikan ditujukan ke Petugas Ukur
+    if (
+      isRevision &&
+      berkas.lastRevisionFrom &&
+      !berkas.lastRevisionFrom.includes('PETUGAS_UKUR')
+    ) {
+      throw new BadRequestException('Revisi ini tidak ditujukan kepada Petugas Ukur');
     }
 
     // Determine next status
@@ -277,6 +294,15 @@ export class BerkasWorkflowService {
 
     if (!isRevision && berkas.status !== BerkasStatus.DI_PETUGAS_PEMETAAN) {
       throw new BadRequestException('Berkas tidak dalam status yang sesuai');
+    }
+
+    // Jika revisi, pastikan ditujukan ke Petugas Pemetaan
+    if (
+      isRevision &&
+      berkas.lastRevisionFrom &&
+      !berkas.lastRevisionFrom.includes('PETUGAS_PEMETAAN')
+    ) {
+      throw new BadRequestException('Revisi ini tidak ditujukan kepada Petugas Pemetaan');
     }
 
     // Determine next status

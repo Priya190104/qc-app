@@ -220,6 +220,21 @@ export default function UpdateBerkasDataUkurPage() {
     );
   }
 
+  if ((berkas as any).status !== 'DI_OPERATOR_DATA_UKUR') {
+    return (
+      <div className="space-y-6">
+        <Alert
+          type="warning"
+          title="Status Berkas Tidak Sesuai"
+          message={`Berkas ini sudah dalam status "${(berkas as any).status}" dan tidak dapat diproses di halaman Operator Data Ukur.`}
+        />
+        <Link href="/berkas/proses/operator-data-ukur">
+          <Button variant="outline">← Kembali ke Daftar</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">

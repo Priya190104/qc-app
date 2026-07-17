@@ -186,9 +186,16 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
         notes: formData.notes || undefined,
       };
 
+      const currentStatus = (berkas as any)?.status;
       // Use workflow API untuk validasi pemetaan
       await apiClient.post(`/berkas/workflow/${id}/petugas-pemetaan/validate`, updateData);
-      setSuccess('Pemetaan berkas berhasil divalidasi dan dilanjutkan ke Pemilihan KKS');
+      if (currentStatus === 'REVISI_KKS') {
+        setSuccess('Revisi pemetaan selesai. Berkas dikembalikan ke KKS.');
+      } else if (currentStatus === 'REVISI_KASI') {
+        setSuccess('Revisi pemetaan selesai. Berkas dikembalikan ke Kepala Seksi.');
+      } else {
+        setSuccess('Pemetaan berkas berhasil divalidasi dan dilanjutkan ke Pemilihan KKS');
+      }
 
       // Redirect back to list after success
       setTimeout(() => {
@@ -251,6 +258,22 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
         <Alert type="error" title="Error" message="Berkas tidak ditemukan" />
         <Link href="/berkas/proses/petugas-pemetaan">
           <Button variant="outline">← Kembali</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const validStatuses = ['DI_PETUGAS_PEMETAAN', 'REVISI_KKS', 'REVISI_KASI'];
+  if (!validStatuses.includes((berkas as any).status)) {
+    return (
+      <div className="space-y-6">
+        <Alert
+          type="warning"
+          title="Status Berkas Tidak Sesuai"
+          message={`Berkas ini sudah dalam status "${(berkas as any).status}" dan tidak dapat diproses di halaman Petugas Pemetaan.`}
+        />
+        <Link href="/berkas/proses/petugas-pemetaan">
+          <Button variant="outline">← Kembali ke Daftar</Button>
         </Link>
       </div>
     );

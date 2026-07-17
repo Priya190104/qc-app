@@ -112,9 +112,18 @@ export default function ValidasiBerkasPetugasUkurPage() {
         notes: formData.notes || undefined,
       };
 
+      const currentStatus = (berkas as any)?.status;
       // Use workflow API untuk validasi pengukuran
       await apiClient.post(`/berkas/workflow/${id}/petugas-ukur/validate`, updateData);
-      setSuccess('Pengukuran berkas berhasil divalidasi dan dilanjutkan ke Operator Data Pemetaan');
+      if (currentStatus === 'REVISI_KKS') {
+        setSuccess('Revisi pengukuran selesai. Berkas dikembalikan ke KKS.');
+      } else if (currentStatus === 'REVISI_KASI') {
+        setSuccess('Revisi pengukuran selesai. Berkas dikembalikan ke Kepala Seksi.');
+      } else {
+        setSuccess(
+          'Pengukuran berkas berhasil divalidasi dan dilanjutkan ke Operator Data Pemetaan'
+        );
+      }
 
       // Redirect back to list after success
       setTimeout(() => {
@@ -139,6 +148,22 @@ export default function ValidasiBerkasPetugasUkurPage() {
         <Alert type="error" title="Error" message="Berkas tidak ditemukan" />
         <Link href="/berkas/proses/petugas-ukur">
           <Button variant="outline">← Kembali</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const validStatuses = ['DI_PETUGAS_UKUR', 'REVISI_KKS', 'REVISI_KASI'];
+  if (!validStatuses.includes((berkas as any).status)) {
+    return (
+      <div className="space-y-6">
+        <Alert
+          type="warning"
+          title="Status Berkas Tidak Sesuai"
+          message={`Berkas ini sudah dalam status "${(berkas as any).status}" dan tidak dapat diproses di halaman Petugas Ukur.`}
+        />
+        <Link href="/berkas/proses/petugas-ukur">
+          <Button variant="outline">← Kembali ke Daftar</Button>
         </Link>
       </div>
     );

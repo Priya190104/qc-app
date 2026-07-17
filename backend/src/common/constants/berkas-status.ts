@@ -42,7 +42,8 @@ export const STATUS_TRANSITIONS: Record<BerkasStatus, BerkasStatus[]> = {
   ],
   [BerkasStatus.DI_KEPALA_SEKSI]: [
     BerkasStatus.SELESAI, // ACC
-    BerkasStatus.REVISI_KASI, // Revisi ke Petugas Ukur/Pemetaan/KKS
+    BerkasStatus.REVISI_KASI, // Revisi ke Petugas Ukur/Pemetaan
+    BerkasStatus.DI_KKS, // Revisi langsung dikembalikan ke KKS
   ],
   [BerkasStatus.REVISI_KASI]: [
     BerkasStatus.DI_KEPALA_SEKSI, // Selesai revisi, kembali ke Kepala Seksi
