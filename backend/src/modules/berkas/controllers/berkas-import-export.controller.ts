@@ -33,8 +33,11 @@ export class BerkasImportExportController {
     @Query('tahunBerkas') tahunBerkas?: string,
     @Query('tanggalDari') tanggalDari?: string,
     @Query('tanggalSampai') tanggalSampai?: string,
-    @Res() res: Response
+    @Res() res?: Response
   ) {
+    // @Res() is always injected by NestJS — the optional type is required only
+    // because TypeScript disallows a required param after optional @Query params.
+    const response = res!;
     try {
       const berkasIds = ids ? ids.split(',').map((id) => id.trim()) : undefined;
       const result = await this.importExportService.exportToExcel({
@@ -47,15 +50,15 @@ export class BerkasImportExportController {
         tanggalSampai,
       });
 
-      res.setHeader(
+      response.setHeader(
         'Content-Type',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       );
-      res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
-      res.send(result.data);
+      response.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+      response.send(result.data);
     } catch (error: any) {
-      if (!res.headersSent) {
-        res.status(400).json({ success: false, message: `Export gagal: ${error.message}` });
+      if (!response.headersSent) {
+        response.status(400).json({ success: false, message: `Export gagal: ${error.message}` });
       }
     }
   }
