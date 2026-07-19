@@ -22,6 +22,7 @@ body {
 
 body {
   font-family:
+    'Inter',
     system-ui,
     -apple-system,
     sans-serif;
@@ -68,6 +69,45 @@ input[type='number'] {
   outline-offset: 2px;
 }
 
+/* Balanced text wrap for headings */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+/* Skip-to-content link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen-reader-only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* Animation utilities */
 @keyframes spin {
   from {
@@ -80,4 +120,16 @@ input[type='number'] {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Reduced motion: disable all transitions / animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

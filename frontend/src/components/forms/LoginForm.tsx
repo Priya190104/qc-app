@@ -74,7 +74,9 @@ export const LoginForm: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Email Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Alamat Email</label>
+          <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Alamat Email
+          </label>
           <div
             className={`group relative flex items-center rounded-xl border-2 transition-all duration-200 bg-white ${
               fieldErrors.email
@@ -82,7 +84,10 @@ export const LoginForm: React.FC = () => {
                 : 'border-gray-200 hover:border-gray-300 focus-within:border-blue-500 focus-within:shadow-sm focus-within:shadow-blue-100'
             }`}
           >
-            <span className="pl-4 flex-shrink-0 transition-colors duration-200 text-gray-400 group-focus-within:text-blue-500">
+            <span
+              className="pl-4 flex-shrink-0 transition-colors duration-200 text-gray-400 group-focus-within:text-blue-500"
+              aria-hidden="true"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -93,18 +98,31 @@ export const LoginForm: React.FC = () => {
               </svg>
             </span>
             <input
+              id="login-email"
               type="email"
               name="email"
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
               placeholder="contoh@email.com"
               disabled={isLoading}
+              aria-invalid={!!fieldErrors.email}
+              aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
               className="flex-1 px-3 py-3.5 bg-transparent text-gray-900 placeholder-gray-400 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 rounded-xl"
             />
           </div>
           {fieldErrors.email && (
-            <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
-              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <p
+              id="login-email-error"
+              role="alert"
+              className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
+            >
+              <svg
+                className="w-3.5 h-3.5 flex-shrink-0"
+                aria-hidden="true"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path
                   fillRule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -118,7 +136,12 @@ export const LoginForm: React.FC = () => {
 
         {/* Password Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+          <label
+            htmlFor="login-password"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            Password
+          </label>
           <div
             className={`group relative flex items-center rounded-xl border-2 transition-all duration-200 bg-white ${
               fieldErrors.password
@@ -126,7 +149,10 @@ export const LoginForm: React.FC = () => {
                 : 'border-gray-200 hover:border-gray-300 focus-within:border-blue-500 focus-within:shadow-sm focus-within:shadow-blue-100'
             }`}
           >
-            <span className="pl-4 flex-shrink-0 transition-colors duration-200 text-gray-400 group-focus-within:text-blue-500">
+            <span
+              className="pl-4 flex-shrink-0 transition-colors duration-200 text-gray-400 group-focus-within:text-blue-500"
+              aria-hidden="true"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -137,12 +163,16 @@ export const LoginForm: React.FC = () => {
               </svg>
             </span>
             <input
+              id="login-password"
               type={showPassword ? 'text' : 'password'}
               name="password"
+              autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Masukkan password Anda"
               disabled={isLoading}
+              aria-invalid={!!fieldErrors.password}
+              aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
               className="flex-1 px-3 py-3.5 bg-transparent text-gray-900 placeholder-gray-400 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
             />
             <button
@@ -150,7 +180,7 @@ export const LoginForm: React.FC = () => {
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
               aria-pressed={showPassword}
-              className="pr-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded"
+              className="pr-4 flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded"
             >
               {showPassword ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,8 +210,17 @@ export const LoginForm: React.FC = () => {
             </button>
           </div>
           {fieldErrors.password && (
-            <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
-              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <p
+              id="login-password-error"
+              role="alert"
+              className="mt-1.5 text-xs text-red-500 flex items-center gap-1"
+            >
+              <svg
+                className="w-3.5 h-3.5 flex-shrink-0"
+                aria-hidden="true"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path
                   fillRule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -201,7 +240,12 @@ export const LoginForm: React.FC = () => {
         >
           {isLoading ? (
             <>
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4 animate-spin"
+                aria-hidden="true"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
                 <circle
                   className="opacity-25"
                   cx="12"

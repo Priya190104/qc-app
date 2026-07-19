@@ -41,7 +41,7 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   const btnBase =
-    'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:pointer-events-none';
+    'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 disabled:pointer-events-none';
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1 py-1">
@@ -69,7 +69,7 @@ const Pagination: React.FC<PaginationProps> = ({
             aria-label="Halaman sebelumnya"
             className={`${btnBase} h-8 w-8 border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40`}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           </button>
 
           {/* Page numbers */}
@@ -110,7 +110,7 @@ const Pagination: React.FC<PaginationProps> = ({
             aria-label="Halaman berikutnya"
             className={`${btnBase} h-8 w-8 border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40`}
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </nav>
       )}

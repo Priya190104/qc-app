@@ -30,6 +30,26 @@ const ROLE_CONFIG: Record<string, { label: string; badge: string; dot: string }>
     badge: 'bg-sky-50 text-sky-700 ring-1 ring-sky-200',
     dot: 'bg-sky-500',
   },
+  'petugas-ukur': {
+    label: 'Petugas Ukur',
+    badge: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200',
+    dot: 'bg-indigo-500',
+  },
+  'petugas-pemetaan': {
+    label: 'Petugas Pemetaan',
+    badge: 'bg-teal-50 text-teal-700 ring-1 ring-teal-200',
+    dot: 'bg-teal-500',
+  },
+  kks: {
+    label: 'KKS',
+    badge: 'bg-purple-50 text-purple-700 ring-1 ring-purple-200',
+    dot: 'bg-purple-500',
+  },
+  'kepala-seksi': {
+    label: 'Kepala Seksi',
+    badge: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+    dot: 'bg-rose-500',
+  },
   'quality-control-officer': {
     label: 'Quality Control',
     badge: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
@@ -322,16 +342,28 @@ export default function AkunPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th
+                  scope="col"
+                  className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
                   Pengguna
                 </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th
+                  scope="col"
+                  className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
                   Role
                 </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th
+                  scope="col"
+                  className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
                   Status
                 </th>
-                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">
+                <th
+                  scope="col"
+                  className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right"
+                >
                   Aksi
                 </th>
               </tr>

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, Pencil, Trash2, ChevronDown, ChevronUp, Users, X } from 'lucide-react';
 import { Button, Alert, PageHeader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
+import { useCacheInvalidation } from '@/hooks/useQueryHooks';
 import { Petugas } from '@/types';
 import PetugasModal from '@/components/modals/PetugasModal';
 import DeletePetugasModal from '@/components/modals/DeletePetugasModal';
@@ -139,6 +140,8 @@ export default function PetugasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { invalidatePetugas } = useCacheInvalidation();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
@@ -196,6 +199,9 @@ export default function PetugasPage() {
 
   const handleModalSuccess = () => {
     fetchData();
+    // Invalidate the React Query petugas cache so dropdowns in workflow pages
+    // immediately receive the updated list without requiring a page refresh.
+    invalidatePetugas();
   };
 
   const toggleSection = (key: string) => {

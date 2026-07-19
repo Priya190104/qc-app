@@ -417,6 +417,32 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filteredDesa, setFilteredDesa] = useState<DesaOption[]>([]);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const getFieldError = (field: string): string | undefined => {
+    if (!touched[field]) return undefined;
+    if (field === 'noBerkas') {
+      if (!formData.noBerkas || parseInt(formData.noBerkas) <= 0)
+        return 'Nomor berkas harus diisi dengan angka positif';
+    }
+    if (field === 'tahunBerkas') {
+      if (!formData.tahunBerkas) return 'Tahun berkas harus diisi';
+    }
+    if (field === 'namaPemohon') {
+      if (!formData.namaPemohon.trim()) return 'Nama pemohon harus diisi';
+    }
+    return undefined;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const isRequiredFieldsValid =
+    !!formData.noBerkas &&
+    parseInt(formData.noBerkas) > 0 &&
+    !!formData.tahunBerkas &&
+    !!formData.namaPemohon.trim();
 
   // Update filtered desa when kecamatan changes
   useEffect(() => {
@@ -586,25 +612,69 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
               />
 
               {/* No. Berkas */}
-              <Input
-                label="No. Berkas"
-                type="number"
-                value={formData.noBerkas}
-                onChange={(e) => handleInputChange(e, 'noBerkas')}
-                placeholder="Nomor berkas"
-                min="1"
-                inputMode="numeric"
-                required
-              />
+              <div>
+                <label
+                  htmlFor="ab-noBerkas"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  No. Berkas{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <input
+                  id="ab-noBerkas"
+                  type="number"
+                  value={formData.noBerkas}
+                  onChange={(e) => handleInputChange(e, 'noBerkas')}
+                  onBlur={() => handleBlur('noBerkas')}
+                  placeholder="Nomor berkas"
+                  min="1"
+                  inputMode="numeric"
+                  required
+                  className={`w-full px-4 py-2 rounded-lg border-2 transition-colors duration-200 focus:outline-none ${
+                    getFieldError('noBerkas')
+                      ? 'border-red-400 focus:border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                />
+                {getFieldError('noBerkas') && (
+                  <p role="alert" className="text-red-600 text-sm mt-1">
+                    {getFieldError('noBerkas')}
+                  </p>
+                )}
+              </div>
 
               {/* Tahun Berkas */}
-              <Input
-                label="Tahun Berkas"
-                type="number"
-                value={formData.tahunBerkas}
-                onChange={(e) => handleInputChange(e, 'tahunBerkas')}
-                required
-              />
+              <div>
+                <label
+                  htmlFor="ab-tahunBerkas"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Tahun Berkas{' '}
+                  <span className="text-red-500 ml-0.5" aria-hidden="true">
+                    *
+                  </span>
+                </label>
+                <input
+                  id="ab-tahunBerkas"
+                  type="number"
+                  value={formData.tahunBerkas}
+                  onChange={(e) => handleInputChange(e, 'tahunBerkas')}
+                  onBlur={() => handleBlur('tahunBerkas')}
+                  required
+                  className={`w-full px-4 py-2 rounded-lg border-2 transition-colors duration-200 focus:outline-none ${
+                    getFieldError('tahunBerkas')
+                      ? 'border-red-400 focus:border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                />
+                {getFieldError('tahunBerkas') && (
+                  <p role="alert" className="text-red-600 text-sm mt-1">
+                    {getFieldError('tahunBerkas')}
+                  </p>
+                )}
+              </div>
             </div>
           </fieldset>
 
@@ -613,14 +683,36 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
             <legend className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
               Data Pemohon
             </legend>
-            <Input
-              label="Nama Pemohon"
-              type="text"
-              value={formData.namaPemohon}
-              onChange={(e) => handleInputChange(e, 'namaPemohon')}
-              placeholder="Nama lengkap pemohon"
-              required
-            />
+            <div>
+              <label
+                htmlFor="ab-namaPemohon"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Nama Pemohon{' '}
+                <span className="text-red-500 ml-0.5" aria-hidden="true">
+                  *
+                </span>
+              </label>
+              <input
+                id="ab-namaPemohon"
+                type="text"
+                value={formData.namaPemohon}
+                onChange={(e) => handleInputChange(e, 'namaPemohon')}
+                onBlur={() => handleBlur('namaPemohon')}
+                placeholder="Nama lengkap pemohon"
+                required
+                className={`w-full px-4 py-2 rounded-lg border-2 transition-colors duration-200 focus:outline-none ${
+                  getFieldError('namaPemohon')
+                    ? 'border-red-400 focus:border-red-500'
+                    : 'border-gray-300 focus:border-blue-500'
+                }`}
+              />
+              {getFieldError('namaPemohon') && (
+                <p role="alert" className="text-red-600 text-sm mt-1">
+                  {getFieldError('namaPemohon')}
+                </p>
+              )}
+            </div>
           </fieldset>
 
           {/* Lokasi */}
@@ -759,8 +851,8 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
           </Button>
           <Button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || !isRequiredFieldsValid}
           >
             {loading && (
               <span

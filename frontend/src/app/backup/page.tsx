@@ -476,22 +476,40 @@ export default function BackupPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th
+                      scope="col"
+                      className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                    >
                       Nama File
                     </th>
-                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    <th
+                      scope="col"
+                      className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap"
+                    >
                       Tanggal
                     </th>
-                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th
+                      scope="col"
+                      className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                    >
                       Berkas
                     </th>
-                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th
+                      scope="col"
+                      className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                    >
                       Ukuran
                     </th>
-                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <th
+                      scope="col"
+                      className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                    >
                       Status
                     </th>
-                    <th className="px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">
+                    <th
+                      scope="col"
+                      className="px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right"
+                    >
                       Aksi
                     </th>
                   </tr>

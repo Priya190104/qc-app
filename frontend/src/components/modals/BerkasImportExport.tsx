@@ -1,32 +1,23 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, Upload, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { Button, Alert } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 import { BerkasFilterValues } from '@/components/filters/BerkasFilter';
 
-interface ImportExportResponse {
-  success: boolean;
-  message: string;
-  data?: unknown;
-}
-
 interface BerkasImportExportProps {
   selectedIds?: string[];
   currentFilters?: BerkasFilterValues;
-  onImportSuccess?: () => void;
   onExportSuccess?: () => void;
 }
 
 export default function BerkasImportExport({
   selectedIds = [],
   currentFilters = {},
-  onImportSuccess,
   onExportSuccess,
 }: BerkasImportExportProps) {
   const [exporting, setExporting] = useState(false);
-  const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -97,47 +88,6 @@ export default function BerkasImportExport({
     }
   };
 
-  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setImporting(true);
-      setError(null);
-      setSuccess(null);
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await apiClient.post<ImportExportResponse>(
-        '/berkas/import-export/import',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
-      if (response.data?.success) {
-        setSuccess(
-          response.data?.message || 'Import berhasil. Data berkas telah ditambahkan ke sistem.'
-        );
-        onImportSuccess?.();
-
-        // Reset file input
-        if (event.target) {
-          event.target.value = '';
-        }
-      }
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || 'Import gagal';
-      setError(errorMsg);
-    } finally {
-      setImporting(false);
-    }
-  };
-
   return (
     <>
       {error && <Alert type="error" title="Error" message={error} />}
@@ -165,36 +115,6 @@ export default function BerkasImportExport({
               title="Filter aktif — hanya data yang difilter yang akan diunduh"
             />
           )}
-        </div>
-
-        {/* Import Button */}
-        <div className="relative">
-          <input
-            id="file-import"
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleImport}
-            disabled={importing}
-            className="hidden"
-          />
-          <label htmlFor="file-import">
-            <Button
-              disabled={importing}
-              variant="outline"
-              className="border-green-600 text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap gap-1.5"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById('file-import')?.click();
-              }}
-            >
-              {importing ? (
-                <Loader2 size={15} className="animate-spin" />
-              ) : (
-                <Upload size={15} strokeWidth={2.2} />
-              )}
-              {importing ? 'Mengupload...' : 'Unggah Excel'}
-            </Button>
-          </label>
         </div>
       </div>
     </>

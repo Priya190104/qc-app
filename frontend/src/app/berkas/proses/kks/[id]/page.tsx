@@ -7,6 +7,8 @@ import { Button, Alert, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 import { useBerkasDetail, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
+import BerkasDetailTab from '@/components/berkas/BerkasDetailTab';
+import BerkasHistoryTab from '@/components/berkas/BerkasHistoryTab';
 
 interface Berkas {
   id: string;
@@ -127,6 +129,7 @@ export default function ValidasiBerkasKKSPage() {
 
       // Redirect after 2 seconds
       setTimeout(() => {
+        invalidateBerkas();
         router.push('/berkas/proses/kks');
       }, 2000);
     } catch (err: any) {
@@ -405,238 +408,10 @@ export default function ValidasiBerkasKKSPage() {
           </form>
         )}
 
-        {activeTab === 'detail' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Informasi Dasar */}
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Nomor Berkas</h3>
-                <p className="mt-1 text-sm text-gray-900">{berkas.nomor}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Nama Pemohon</h3>
-                <p className="mt-1 text-sm text-gray-900">{berkas.namaPemohon || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Tanggal Berkas</h3>
-                <p className="mt-1 text-sm text-gray-900">{formatDate(berkas.tanggalBerkas)}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Kegiatan</h3>
-                <p className="mt-1 text-sm text-gray-900">{berkas.kegiatan || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Tahun Berkas</h3>
-                <p className="mt-1 text-sm text-gray-900">{berkas.tahunBerkas || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Desa</h3>
-                <p className="mt-1 text-sm text-gray-900">{berkas.desa || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Kecamatan</h3>
-                <p className="mt-1 text-sm text-gray-900">{berkas.kecamatan || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Nama Prosedur</h3>
-                <p className="mt-1 text-sm text-gray-900">{berkas.namaProsedur || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Luas Pendaftaran</h3>
-                <p className="mt-1 text-sm text-gray-900">
-                  {berkas.luasPendaftaran
-                    ? `${berkas.luasPendaftaran.toLocaleString('id-ID')} m²`
-                    : '-'}
-                </p>
-              </div>
-            </div>
+        {activeTab === 'detail' && <BerkasDetailTab berkas={berkas as any} />}
 
-            {/* Data Pengukuran */}
-            {(berkas.petugasUkur || berkas.puLapang || berkas.noSTP) && (
-              <>
-                <div className="border-t border-gray-200 pt-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Pengukuran</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Petugas Ukur</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {berkas.petugasUkur
-                        ? `${berkas.petugasUkur.nama} (${berkas.petugasUkur.nip})`
-                        : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">PU Lapang</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {berkas.puLapang ? `${berkas.puLapang.nama} (${berkas.puLapang.nip})` : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">No. STP</h3>
-                    <p className="mt-1 text-sm text-gray-900">{berkas.noSTP || '-'}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Tanggal STP</h3>
-                    <p className="mt-1 text-sm text-gray-900">{formatDate(berkas.tglSTP)}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">No. SHAT/NIBEL</h3>
-                    <p className="mt-1 text-sm text-gray-900">{berkas.noSHATNIBEL || '-'}</p>
-                  </div>
-                </div>
-              </>
-            )}
+        {activeTab === 'history' && <BerkasHistoryTab history={(berkas as any)?.history} />}
 
-            {/* Data Pemetaan */}
-            {(berkas.petugasPemetaan ||
-              berkas.luasHasilUkur ||
-              berkas.nib ||
-              berkas.jumlahBidang) && (
-              <>
-                <div className="border-t border-gray-200 pt-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Pemetaan</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Petugas Pemetaan</h3>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {berkas.petugasPemetaan
-                        ? `${berkas.petugasPemetaan.nama} (${berkas.petugasPemetaan.nip})`
-                        : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Jumlah Bidang</h3>
-                    <p className="mt-1 text-sm font-semibold text-purple-700">
-                      {berkas.jumlahBidang || '-'}
-                    </p>
-                  </div>
-                </div>
-                {berkas.bidangItems && berkas.bidangItems.length > 0 ? (
-                  <div className="space-y-3">
-                    {berkas.bidangItems.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="border border-purple-200 rounded-lg p-4 bg-purple-50"
-                      >
-                        <h4 className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-3">
-                          Bidang {idx + 1}
-                        </h4>
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                          <div>
-                            <p className="text-xs font-medium text-gray-500">Luas Hasil Ukur</p>
-                            <p className="mt-0.5 text-sm font-medium text-gray-900">
-                              {item.luasHasilUkur
-                                ? `${item.luasHasilUkur.toLocaleString('id-ID')} m²`
-                                : '-'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-gray-500">NIB</p>
-                            <p className="mt-0.5 text-sm font-medium text-gray-900">
-                              {item.nib || '-'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-gray-500">NIBEL</p>
-                            <p className="mt-0.5 text-sm font-medium text-gray-900">
-                              {item.nibel || '-'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium text-gray-500">No. SU</p>
-                            <p className="mt-0.5 text-sm font-medium text-gray-900">
-                              {item.noSU || '-'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                      <div>
-                        <p className="text-xs font-medium text-gray-500">Luas Hasil Ukur</p>
-                        <p className="mt-0.5 text-sm font-medium text-gray-900">
-                          {berkas.luasHasilUkur
-                            ? `${berkas.luasHasilUkur.toLocaleString('id-ID')} m²`
-                            : '-'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-gray-500">NIB</p>
-                        <p className="mt-0.5 text-sm font-medium text-gray-900">
-                          {berkas.nib || '-'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-gray-500">NIBEL</p>
-                        <p className="mt-0.5 text-sm font-medium text-gray-900">
-                          {berkas.nibel || '-'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-gray-500">No. SU</p>
-                        <p className="mt-0.5 text-sm font-medium text-gray-900">
-                          {berkas.noSU || '-'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'history' && (
-          <div className="space-y-4">
-            {berkas.history && berkas.history.length > 0 ? (
-              <div className="flow-root">
-                <ul role="list" className="-mb-8">
-                  {berkas.history.map((item, itemIdx) => (
-                    <li key={item.id}>
-                      <div className="relative pb-8">
-                        {itemIdx !== berkas.history!.length - 1 ? (
-                          <span
-                            className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                            aria-hidden="true"
-                          />
-                        ) : null}
-                        <div className="relative flex space-x-3">
-                          <div>
-                            <span className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center ring-8 ring-white">
-                              <span className="text-white text-xs">📋</span>
-                            </span>
-                          </div>
-                          <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                            <div>
-                              <p className="text-sm text-gray-900">
-                                Status diubah dari{' '}
-                                <span className="font-medium">{item.oldStatus || '-'}</span> ke{' '}
-                                <span className="font-medium">{item.newStatus || '-'}</span>
-                              </p>
-                              {item.reason && (
-                                <p className="mt-1 text-sm text-gray-500">Alasan: {item.reason}</p>
-                              )}
-                            </div>
-                            <div className="whitespace-nowrap text-right text-sm text-gray-500">
-                              {new Date(item.changedAt).toLocaleString('id-ID')}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 py-8">Tidak ada history</p>
-            )}
-          </div>
-        )}
         {activeTab === 'catatan' && <BerkasCatatanTab berkasId={id} />}
       </div>
     </div>

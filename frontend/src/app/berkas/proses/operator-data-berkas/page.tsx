@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Button, Alert, Pagination, PageHeader } from '@/components/ui';
 import { StatusBadge, TableSkeleton, EmptyState } from '@/components/berkas';
 import BerkasFilter, { BerkasFilterValues } from '@/components/filters/BerkasFilter';
-import AddBerkasModal from '@/components/modals/AddBerkasModal';
 import { useBerkasList, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import { useAuthStore } from '@/stores';
+
+const AddBerkasModal = dynamic(() => import('@/components/modals/AddBerkasModal'), { ssr: false });
 
 interface Berkas {
   id: string;
@@ -50,19 +52,19 @@ export default function OperatorDataBerkasPage() {
 
   const { invalidateBerkas } = useCacheInvalidation();
 
-  const handleFilterChange = (newFilters: BerkasFilterValues) => {
+  const handleFilterChange = useCallback((newFilters: BerkasFilterValues) => {
     setFilters(newFilters);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const handleAddBerkasSuccess = () => {
+  const handleAddBerkasSuccess = useCallback(() => {
     invalidateBerkas();
-  };
+  }, [invalidateBerkas]);
 
   return (
     <div className="space-y-5">
@@ -99,28 +101,28 @@ export default function OperatorDataBerkasPage() {
         <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-10">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-10">
                 No.
               </th>
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                 No. Berkas
               </th>
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                 Nama Pemohon
               </th>
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-28">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-28">
                 Tgl. Masuk
               </th>
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                 Kegiatan
               </th>
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                 Desa / Kecamatan
               </th>
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-32">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-32">
                 Status
               </th>
-              <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-24">
+              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-24">
                 Aksi
               </th>
             </tr>

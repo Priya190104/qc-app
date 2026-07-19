@@ -9,3 +9,4 @@ export type { BreadcrumbItem } from './PageHeader';
 export { LoadingSpinner, SectionLoader } from './LoadingSpinner';
 export { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal';
 export { EmptyState } from './EmptyState';
+export { Toaster } from './Toaster';

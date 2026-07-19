@@ -6,14 +6,24 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Left Panel — Branding */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 flex-col items-center justify-center p-12">
         {/* Background decorative circles */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+        <div
+          aria-hidden="true"
+          className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute bottom-0 right-0 w-80 h-80 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute top-1/2 left-1/2 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"
+        />
 
         {/* Logo & Title */}
         <div className="relative z-10 text-center">
           <div className="mx-auto mb-6 w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center border border-white/20 shadow-xl">
             <svg
+              aria-hidden="true"
               className="w-10 h-10 text-white"
               fill="none"
               stroke="currentColor"
@@ -52,8 +62,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 key={i}
                 className="flex items-start gap-3 bg-white/20 rounded-xl p-4 border border-white/15"
               >
-                <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <div
+                  aria-hidden="true"
+                  className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center"
+                >
                   <svg
+                    aria-hidden="true"
                     className="w-4 h-4 text-white"
                     fill="none"
                     stroke="currentColor"
@@ -74,9 +88,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Footer */}
-        <p className="absolute bottom-6 text-blue-300 text-xs">
+        <footer className="absolute bottom-6 text-blue-300 text-xs">
           © 2026 SISTEM QC BERKAS. All rights reserved.
-        </p>
+        </footer>
       </div>
 
       {/* Right Panel — Auth Form */}
@@ -85,6 +99,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="lg:hidden mb-8 text-center">
           <div className="mx-auto mb-3 w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
             <svg
+              aria-hidden="true"
               className="w-7 h-7 text-white"
               fill="none"
               stroke="currentColor"
@@ -105,7 +120,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {children}
         </div>
 
-        <p className="lg:hidden mt-8 text-center text-xs text-gray-400">
+        <p aria-hidden="true" className="lg:hidden mt-8 text-center text-xs text-gray-400">
           © 2026 SISTEM QC BERKAS. All rights reserved.
         </p>
       </div>

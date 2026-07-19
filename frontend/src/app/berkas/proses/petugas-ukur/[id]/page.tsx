@@ -7,6 +7,8 @@ import { Button, Alert, PageHeader, SectionLoader } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 import { useBerkasDetail, usePetugasList, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import BerkasCatatanTab from '@/components/berkas/BerkasCatatanTab';
+import BerkasDetailTab from '@/components/berkas/BerkasDetailTab';
+import BerkasHistoryTab from '@/components/berkas/BerkasHistoryTab';
 
 interface Berkas {
   id: string;
@@ -127,6 +129,7 @@ export default function ValidasiBerkasPetugasUkurPage() {
 
       // Redirect back to list after success
       setTimeout(() => {
+        invalidateBerkas();
         window.location.href = '/berkas/proses/petugas-ukur';
       }, 2000);
     } catch (err: any) {
@@ -297,180 +300,9 @@ export default function ValidasiBerkasPetugasUkurPage() {
           )}
 
           {/* Tab: Detail Berkas */}
-          {activeTab === 'detail' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Informasi Dasar */}
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Nomor Berkas</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.nomor}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Nama Pemohon</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.namaPemohon || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Tanggal Berkas</h3>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {(() => {
-                      if (!berkas.tanggalBerkas) return '-';
-                      try {
-                        const date = new Date(berkas.tanggalBerkas);
-                        return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('id-ID');
-                      } catch {
-                        return '-';
-                      }
-                    })()}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Kegiatan</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.kegiatan || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Tahun Berkas</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.tahunBerkas || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Desa</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.desa || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Kecamatan</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.kecamatan || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Nama Prosedur</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.namaProsedur || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Luas Pendaftaran</h3>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {berkas.luasPendaftaran
-                      ? `${berkas.luasPendaftaran.toLocaleString('id-ID')} m²`
-                      : '-'}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">DI.302</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.di302 || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">DI.305</h3>
-                  <p className="mt-1 text-sm text-gray-900">{berkas.di305 || '-'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                  <p className="mt-1 text-sm text-gray-900">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium ${
-                        berkas.status === 'PROSES'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : berkas.status === 'SELESAI'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {berkas.status}
-                    </span>
-                  </p>
-                </div>
-              </div>
+          {activeTab === 'detail' && <BerkasDetailTab berkas={berkas as any} />}
 
-              {/* Data Pengukuran */}
-              {(berkas.petugasUkur ||
-                berkas.puLapang ||
-                berkas.noSTP ||
-                berkas.tglSTP ||
-                berkas.noSHATNIBEL) && (
-                <>
-                  <div className="border-t border-gray-200 pt-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Pengukuran</h2>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Petugas Ukur</h3>
-                      <p className="mt-1 text-sm text-gray-900">
-                        {berkas.petugasUkur
-                          ? `${berkas.petugasUkur.nama} (${berkas.petugasUkur.nip})`
-                          : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">PU Lapang</h3>
-                      <p className="mt-1 text-sm text-gray-900">
-                        {berkas.puLapang ? `${berkas.puLapang.nama} (${berkas.puLapang.nip})` : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">No. STP</h3>
-                      <p className="mt-1 text-sm text-gray-900">{berkas.noSTP || '-'}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Tanggal STP</h3>
-                      <p className="mt-1 text-sm text-gray-900">
-                        {berkas.tglSTP ? new Date(berkas.tglSTP).toLocaleDateString('id-ID') : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">No. SHAT/NIBEL</h3>
-                      <p className="mt-1 text-sm text-gray-900">{berkas.noSHATNIBEL || '-'}</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Tab: History Berkas */}
-          {activeTab === 'history' && (
-            <div className="space-y-4">
-              {berkas.history && berkas.history.length > 0 ? (
-                <div className="flow-root">
-                  <ul role="list" className="-mb-8">
-                    {berkas.history.map((item, itemIdx) => (
-                      <li key={item.id}>
-                        <div className="relative pb-8">
-                          {itemIdx !== berkas.history!.length - 1 ? (
-                            <span
-                              className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                              aria-hidden="true"
-                            />
-                          ) : null}
-                          <div className="relative flex space-x-3">
-                            <div>
-                              <span className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center ring-8 ring-white">
-                                <span className="text-white text-xs">📋</span>
-                              </span>
-                            </div>
-                            <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                              <div>
-                                <p className="text-sm text-gray-900">
-                                  Status diubah dari{' '}
-                                  <span className="font-medium">{item.oldStatus || '-'}</span> ke{' '}
-                                  <span className="font-medium">{item.newStatus || '-'}</span>
-                                </p>
-                                {item.reason && (
-                                  <p className="mt-1 text-sm text-gray-500">
-                                    Alasan: {item.reason}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="whitespace-nowrap text-right text-sm text-gray-500">
-                                {new Date(item.changedAt).toLocaleString('id-ID')}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <p className="text-center text-gray-500 py-8">Tidak ada history</p>
-              )}
-            </div>
-          )}
+          {activeTab === 'history' && <BerkasHistoryTab history={(berkas as any)?.history} />}
 
           {activeTab === 'catatan' && (
             <BerkasCatatanTab berkasId={id} initialDeskripsi={berkas?.deskripsi} />

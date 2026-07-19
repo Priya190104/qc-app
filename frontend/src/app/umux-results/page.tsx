@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, useId, useRef } from 'react';
 import { PageHeader } from '@/components/ui';
@@ -968,19 +968,34 @@ export default function UmuxResultsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th
+                  scope="col"
+                  className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
                   Pengguna
                 </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th
+                  scope="col"
+                  className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
                   Role
                 </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                <th
+                  scope="col"
+                  className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap"
+                >
                   Tanggal Submit
                 </th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th
+                  scope="col"
+                  className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide"
+                >
                   Skor
                 </th>
-                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">
+                <th
+                  scope="col"
+                  className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right"
+                >
                   Aksi
                 </th>
               </tr>

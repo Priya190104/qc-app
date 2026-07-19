@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Search, SlidersHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface BerkasFilterProps {
@@ -32,6 +33,13 @@ const BerkasFilter: React.FC<BerkasFilterProps> = ({ onFilterChange, onReset }) 
   const [tanggalSampai, setTanggalSampai] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // Auto-fire search 400ms after the user stops typing
+  const debouncedSearch = useDebounce(search, 400);
+  useEffect(() => {
+    onFilterChange(buildFilters({ search: debouncedSearch }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
 
   // Count how many non-search filters are active
   const activeFilterCount = [desa, kecamatan, tahunBerkas, tanggalDari, tanggalSampai].filter(
@@ -81,7 +89,10 @@ const BerkasFilter: React.FC<BerkasFilterProps> = ({ onFilterChange, onReset }) 
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleApplyFilter();
+    if (e.key === 'Enter') {
+      // Immediate search on Enter — no need to wait for debounce
+      onFilterChange(buildFilters());
+    }
     if (e.key === 'Escape') {
       setSearch('');
       onFilterChange(buildFilters({ search: '' }));
@@ -158,15 +169,6 @@ const BerkasFilter: React.FC<BerkasFilterProps> = ({ onFilterChange, onReset }) 
           ) : (
             <ChevronDown className="w-3.5 h-3.5" />
           )}
-        </button>
-
-        {/* Search button */}
-        <button
-          type="button"
-          onClick={handleApplyFilter}
-          className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-150 whitespace-nowrap"
-        >
-          Cari
         </button>
       </div>
 

@@ -1,16 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button, Alert, Pagination, PageHeader } from '@/components/ui';
 import BerkasTable from '@/components/tables/BerkasTable';
-import AddBerkasModal from '@/components/modals/AddBerkasModal';
-import BerkasImportExport from '@/components/modals/BerkasImportExport';
 import BerkasFilter, { BerkasFilterValues } from '@/components/filters/BerkasFilter';
 import { apiClient } from '@/lib/api';
 import { useBerkasList, useCacheInvalidation } from '@/hooks/useQueryHooks';
 import { useAuthStore } from '@/stores';
+
+// Heavy modals — only needed when user explicitly opens them
+const AddBerkasModal = dynamic(() => import('@/components/modals/AddBerkasModal'), { ssr: false });
+const BerkasImportExport = dynamic(() => import('@/components/modals/BerkasImportExport'), {
+  ssr: false,
+});
 
 interface Berkas {
   id: string;
@@ -68,43 +73,45 @@ export default function AllBerkasPage() {
 
   const { invalidateBerkas } = useCacheInvalidation();
 
-  const handleFilterChange = (newFilters: BerkasFilterValues) => {
+  const handleFilterChange = useCallback((newFilters: BerkasFilterValues) => {
     setFilters(newFilters);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const handleAddBerkasSuccess = () => {
+  const handleAddBerkasSuccess = useCallback(() => {
     invalidateBerkas();
-  };
+  }, [invalidateBerkas]);
 
-  const handleImportSuccess = () => {
-    invalidateBerkas();
-  };
+  const handleViewBerkas = useCallback(
+    (id: string) => {
+      router.push(`/berkas/detail/${id}`);
+    },
+    [router]
+  );
 
-  const handleViewBerkas = (id: string) => {
-    router.push(`/berkas/detail/${id}`);
-  };
+  const handleCloseBerkas = useCallback(
+    async (id: string) => {
+      if (!confirm('Apakah Anda yakin ingin menutup berkas ini?')) {
+        return;
+      }
 
-  const handleCloseBerkas = async (id: string) => {
-    if (!confirm('Apakah Anda yakin ingin menutup berkas ini?')) {
-      return;
-    }
-
-    try {
-      setCloseError(null);
-      await apiClient.patch(`/berkas/${id}/close`);
-      alert('Berkas berhasil ditutup');
-      invalidateBerkas();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to close berkas';
-      setCloseError(errorMessage);
-    }
-  };
+      try {
+        setCloseError(null);
+        await apiClient.patch(`/berkas/${id}/close`);
+        alert('Berkas berhasil ditutup');
+        invalidateBerkas();
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to close berkas';
+        setCloseError(errorMessage);
+      }
+    },
+    [invalidateBerkas]
+  );
 
   return (
     <div className="space-y-5">
@@ -114,11 +121,7 @@ export default function AllBerkasPage() {
         breadcrumbs={[{ label: 'Berkas' }]}
         actions={
           <>
-            <BerkasImportExport
-              currentFilters={filters}
-              onImportSuccess={handleImportSuccess}
-              onExportSuccess={() => {}}
-            />
+            <BerkasImportExport currentFilters={filters} onExportSuccess={() => {}} />
             {canAddBerkas && (
               <Button
                 onClick={() => setIsAddModalOpen(true)}

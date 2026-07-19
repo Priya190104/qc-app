@@ -119,7 +119,7 @@ export function useBerkasDetail(id: string) {
       return res.data?.data;
     },
     enabled: !!id, // Only fetch when id is provided
-    staleTime: 10_000,
+    staleTime: 0, // Always refetch on mount so detail page is never stale
   });
 }
 
@@ -153,7 +153,7 @@ export function usePetugasList(departemen?: string) {
       }
       return Array.isArray(rawData) ? rawData : [];
     },
-    staleTime: 5 * 60_000, // Petugas list rarely changes: 5 minutes
+    staleTime: 60_000, // Petugas list: 1 minute (short enough to pick up new entries)
   });
 }
 
@@ -175,6 +175,7 @@ export function useCacheInvalidation() {
 
   return {
     invalidateBerkas: () => queryClient.invalidateQueries({ queryKey: ['berkas'] }),
+    invalidatePetugas: () => queryClient.invalidateQueries({ queryKey: ['petugas'] }),
     invalidateDashboard: () => queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
     invalidateAll: () => queryClient.invalidateQueries(),
   };
