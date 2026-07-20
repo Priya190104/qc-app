@@ -40,7 +40,7 @@ export default function OperatorDataBerkasPage() {
   const itemsPerPage = 10;
 
   const { data, isLoading, error } = useBerkasList({
-    status: 'PEMILIHAN_KKS,DI_KKS',
+    status: 'PEMILIHAN_KKS',
     page: currentPage,
     limit: itemsPerPage,
     ...filters,
@@ -70,7 +70,7 @@ export default function OperatorDataBerkasPage() {
     <div className="space-y-5">
       <PageHeader
         title="Operator Data Berkas"
-        description="Daftar berkas masuk yang menunggu penunjukan KKS atau sedang di KKS"
+        description="Daftar berkas masuk yang menunggu penunjukan KKS"
         breadcrumbs={[
           { label: 'Berkas Dalam Proses', href: '/berkas/proses' },
           { label: 'Operator Data Berkas' },
@@ -101,28 +101,52 @@ export default function OperatorDataBerkasPage() {
         <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-10">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-10"
+              >
                 No.
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider"
+              >
                 No. Berkas
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider"
+              >
                 Nama Pemohon
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-28">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-28"
+              >
                 Tgl. Masuk
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider"
+              >
                 Kegiatan
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider"
+              >
                 Desa / Kecamatan
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-32">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-32"
+              >
                 Status
               </th>
-              <th scope="col" className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-24">
+              <th
+                scope="col"
+                className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-24"
+              >
                 Aksi
               </th>
             </tr>
@@ -134,7 +158,7 @@ export default function OperatorDataBerkasPage() {
               <EmptyState
                 cols={COLS}
                 title="Tidak ada berkas ditemukan"
-                description="Berkas dengan status Pemilihan KKS atau Di KKS akan muncul di sini."
+                description="Berkas dengan status Pemilihan KKS akan muncul di sini."
               />
             ) : (
               berkasList.map((berkas, index) => (

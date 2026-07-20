@@ -87,7 +87,7 @@ export default function PilihKKSPage() {
   const [selectedKKS, setSelectedKKS] = useState('');
 
   const { data: berkas, isLoading } = useBerkasDetail(id);
-  const { data: kksList } = usePetugasList('KKS');
+  const { data: kksList = [] } = usePetugasList('KKS');
   const { invalidateBerkas } = useCacheInvalidation();
 
   useEffect(() => {
@@ -554,7 +554,7 @@ export default function PilihKKSPage() {
 
         {activeTab === 'detail' && <BerkasDetailTab berkas={berkas as any} />}
 
-          {activeTab === 'history' && <BerkasHistoryTab history={(berkas as any)?.history} />}
+        {activeTab === 'history' && <BerkasHistoryTab history={(berkas as any)?.history} />}
 
         {activeTab === 'catatan' && (
           <BerkasCatatanTab berkasId={id} initialDeskripsi={berkas?.deskripsi} />
