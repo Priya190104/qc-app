@@ -29,6 +29,13 @@ export class FeedbackController {
     return this.feedbackService.submitUmux(userId, dto);
   }
 
+  @Get('umux/status')
+  @ApiOperation({ summary: 'Cek status pengisian UMUX bulan berjalan' })
+  async getStatus(@Request() req: any) {
+    const userId = req.user?.sub ?? req.user?.id;
+    return this.feedbackService.getStatus(userId);
+  }
+
   @Get('umux')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Ambil semua respons UMUX (admin only)' })

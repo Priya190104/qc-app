@@ -1,172 +1,117 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
-import { useAuthStore } from '@/stores';
-import {
-  initSession,
-  recordPageVisit,
-  isSessionMature,
-  hasCompletedWorkflow,
-  isSurveyDue,
-  isDismissedThisSession,
-} from '@/lib/umux-storage';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { onUmuxCheckNeeded } from '@/lib/umux-events';
+import { apiClient } from '@/lib/api';
+import { isDismissedThisSession, hasSubmittedThisSession } from '@/lib/umux-storage';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-/** Roles that are eligible for the UMUX survey. */
-const QUALIFYING_ROLES = [
-  'administrator',
-  'operator-data-berkas',
-  'operator-data-pemetaan',
-  'operator-data-ukur',
-  'quality-control-officer',
-];
-
-/** Inactivity duration before we attempt to show the invitation (45 s). */
-const IDLE_TIMEOUT_MS = 45_000;
-
-/** Routes where the invitation is never shown. */
-const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/'];
-
-/** Operational routes where showing a survey popup would be disruptive. */
-const EXCLUDED_PATH_PREFIXES = ['/backup'];
+/**
+ * Minimum milliseconds between consecutive server status checks.
+ * Prevents burst calls when multiple queued requests all resolve after
+ * a single token refresh triggers the event.
+ */
+const CHECK_DEBOUNCE_MS = 5_000;
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 /**
- * Returns `shouldShow` (a boolean that becomes true when all trigger conditions
- * are met) and `dismiss` (call this when the modal is closed for any reason).
+ * Returns `shouldShow` and `dismiss` driven by server-side monthly UMUX status.
  *
- * All trigger conditions must be true simultaneously:
- *   1. Authenticated user with a qualifying role
- *   2. Session has been active ≥ 10 minutes
- *   3. User has navigated to ≥ 2 protected routes (workflow proxy)
- *   4. Survey is due (never submitted, or last submission > 30 days ago)
- *   5. User hasn't dismissed the invitation during the current session
- *   6. User is idle (no keyboard / pointer events for IDLE_TIMEOUT_MS)
- *   7. No other dialogs are currently open in the DOM
- *   8. No form element is focused (user is not actively typing)
- *   9. Not on an excluded path (backup/restore)
+ * Trigger events (both call GET /feedback/umux/status):
+ *   1. On mount   — covers the "just logged in + redirected" and "page refresh" cases.
+ *   2. On token refresh event (emitUmuxCheckNeeded) — covers long sessions where
+ *      the access token is silently renewed by the Axios interceptor.
+ *
+ * Show conditions (all must be true):
+ *   • Server reports hasSurveyedThisMonth === false for the current user
+ *   • User has not dismissed the invitation in this tab session
+ *   • User has not submitted the survey in this tab session
+ *
+ * Applies to all authenticated roles without exception.
+ * Monthly reset is handled server-side by checking submittedAt >= first of month.
  */
 export function useUmuxTrigger() {
-  const { user, isAuthenticated } = useAuthStore();
-  const pathname = usePathname();
   const [shouldShow, setShouldShow] = useState(false);
 
-  // Stable refs so callbacks don't become stale
+  // Refs for values needed inside async callbacks (avoids stale closures)
   const shouldShowRef = useRef(false);
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isCheckingRef = useRef(false);
+  const lastCheckRef = useRef<number>(0);
   const mountedRef = useRef(true);
 
-  // Keep shouldShowRef in sync
+  // Keep shouldShowRef in sync with React state
   useEffect(() => {
     shouldShowRef.current = shouldShow;
   }, [shouldShow]);
 
-  // Clean up on unmount
   useEffect(() => {
-    initSession();
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
   }, []);
 
-  // Track page navigations as workflow proxy
-  useEffect(() => {
-    if (pathname && !PUBLIC_PATHS.includes(pathname)) {
-      recordPageVisit();
-    }
-  }, [pathname]);
+  // ── Core status check ───────────────────────────────────────────────────────
 
-  // ── Core eligibility check ──────────────────────────────────────────────────
-
-  const checkAndShow = useCallback(() => {
-    if (!mountedRef.current) return;
-    if (shouldShowRef.current) return; // already visible — don't re-evaluate
-
-    // Path guards
-    if (PUBLIC_PATHS.includes(pathname)) return;
-    if (EXCLUDED_PATH_PREFIXES.some((p) => pathname.startsWith(p))) return;
-
-    // Auth
-    if (!isAuthenticated || !user) return;
-
-    // Role
-    const roles = user.roles?.map((r) => r.name) ?? [];
-    if (!roles.some((r) => QUALIFYING_ROLES.includes(r))) return;
-
-    // Session maturity (10 min)
-    if (!isSessionMature()) return;
-
-    // Workflow proxy (≥ 2 page visits)
-    if (!hasCompletedWorkflow()) return;
-
-    // 30-day cooldown
-    if (!isSurveyDue()) return;
-
-    // Session-level dismissal
-    if (isDismissedThisSession()) return;
-
-    // DOM guards (run last — these are the most expensive checks)
-    if (typeof document !== 'undefined') {
-      // No other dialogs open
-      if (document.querySelectorAll('[role="dialog"]').length > 0) return;
-
-      // No form element is currently focused
-      const active = document.activeElement;
-      if (
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement ||
-        active instanceof HTMLSelectElement
-      )
-        return;
-    }
-
-    setShouldShow(true);
-  }, [pathname, isAuthenticated, user]);
-
-  // ── Idle timer management ───────────────────────────────────────────────────
-
-  const scheduleIdleCheck = useCallback(() => {
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(checkAndShow, IDLE_TIMEOUT_MS);
-  }, [checkAndShow]);
-
-  const handleActivity = useCallback(() => {
-    // Once the modal is visible, activity should not dismiss it — the user
-    // must explicitly interact with the invitation card.
+  /**
+   * Calls the backend status endpoint and shows the modal if the user
+   * has not yet completed the UMUX survey for the current calendar month.
+   * Concurrent and rapid calls are deduplicated via refs.
+   */
+  const runCheck = useCallback(async () => {
+    // Skip if the modal is already on screen
     if (shouldShowRef.current) return;
-    scheduleIdleCheck();
-  }, [scheduleIdleCheck]);
+    // Skip if user already interacted with the invitation this session
+    if (isDismissedThisSession()) return;
+    if (hasSubmittedThisSession()) return;
+    // Debounce: ignore calls that arrive within CHECK_DEBOUNCE_MS of the last check
+    const now = Date.now();
+    if (now - lastCheckRef.current < CHECK_DEBOUNCE_MS) return;
+    // Guard against concurrent in-flight checks
+    if (isCheckingRef.current) return;
 
-  // Wire up activity listeners and start the initial idle timer
+    isCheckingRef.current = true;
+    lastCheckRef.current = now;
+
+    try {
+      const res = await apiClient.get<any>('/feedback/umux/status');
+      // Handle both globally-wrapped ({ data: { hasSurveyedThisMonth } })
+      // and unwrapped ({ hasSurveyedThisMonth }) responses defensively.
+      const hasSurveyed: boolean =
+        res.data?.data?.hasSurveyedThisMonth ?? res.data?.hasSurveyedThisMonth ?? true; // default true — never interrupt UX on an unexpected response shape
+
+      if (!hasSurveyed && mountedRef.current && !isDismissedThisSession()) {
+        setShouldShow(true);
+      }
+    } catch {
+      // A failed status check must never disrupt the user's workflow.
+      // The next trigger event will retry.
+    } finally {
+      isCheckingRef.current = false;
+    }
+  }, []); // stable — all dependencies accessed via refs or imported constants
+
+  // Run immediately on mount (covers: post-login redirect, page refresh)
   useEffect(() => {
-    const events = ['keydown', 'mousemove', 'mousedown', 'touchstart', 'scroll'] as const;
-    events.forEach((ev) => window.addEventListener(ev, handleActivity, { passive: true }));
-    scheduleIdleCheck(); // start counting from mount
+    runCheck();
+  }, [runCheck]);
 
-    return () => {
-      events.forEach((ev) => window.removeEventListener(ev, handleActivity));
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    };
-  }, [handleActivity, scheduleIdleCheck]);
+  // Subscribe to token-refresh events (covers: long-running sessions)
+  useEffect(() => {
+    return onUmuxCheckNeeded(runCheck);
+  }, [runCheck]);
 
   // ── Public API ──────────────────────────────────────────────────────────────
 
   /**
-   * Call this when the modal is closed (either by dismiss or submission).
-   * The umux-storage layer is responsible for preventing re-shows:
-   *   – dismissForSession() → blocks re-show for the current session
-   *   – recordSubmission()  → blocks re-show for 30 days
-   * Both are called from within UmuxModal before invoking this callback.
+   * Call when the modal closes (dismiss or submit).
+   * UmuxModal calls dismissForSession() / recordSubmission() internally
+   * before invoking this; those set the session guards that prevent re-shows.
    */
   const dismiss = useCallback(() => {
     setShouldShow(false);
-    // Don't restart the idle timer immediately; give the user a break.
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
   }, []);
 
   return { shouldShow, dismiss };

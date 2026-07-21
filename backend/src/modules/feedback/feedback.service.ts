@@ -26,6 +26,25 @@ export class FeedbackService {
     return response;
   }
 
+  /**
+   * Returns whether the given user has already submitted a UMUX survey
+   * during the current calendar month.
+   * Used by the frontend to decide whether to display the survey popup.
+   */
+  async getStatus(userId: string): Promise<{ hasSurveyedThisMonth: boolean }> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const count = await this.prisma.umuxResponse.count({
+      where: {
+        userId,
+        submittedAt: { gte: startOfMonth },
+      },
+    });
+
+    return { hasSurveyedThisMonth: count > 0 };
+  }
+
   async findAll(limit = 1000) {
     const responses = await this.prisma.umuxResponse.findMany({
       take: Math.min(limit, 5000),

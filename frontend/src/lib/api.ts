@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { AuthResponse, ApiResponse } from '@/types';
+import { emitUmuxCheckNeeded } from '@/lib/umux-events';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -86,6 +87,10 @@ class APIClient {
             const { accessToken, refreshToken: newRefreshToken } = response.data
               .data as AuthResponse;
             this.setTokens(accessToken, newRefreshToken);
+
+            // Notify UMUX trigger hook that a token refresh occurred.
+            // The hook will check whether the user owes a survey this month.
+            emitUmuxCheckNeeded();
 
             // Explicitly spread to preserve responseType on each queued retry.
             this.failedQueue.forEach(({ resolve }) =>
