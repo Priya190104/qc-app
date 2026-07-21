@@ -71,6 +71,26 @@ const ROLE_CONFIG: Record<string, { label: string; badge: string; dot: string }>
     badge: 'bg-sky-50 text-sky-700 ring-1 ring-sky-200',
     dot: 'bg-sky-500',
   },
+  'petugas-ukur': {
+    label: 'Petugas Ukur',
+    badge: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    dot: 'bg-emerald-500',
+  },
+  'petugas-pemetaan': {
+    label: 'Petugas Pemetaan',
+    badge: 'bg-teal-50 text-teal-700 ring-1 ring-teal-200',
+    dot: 'bg-teal-500',
+  },
+  kks: {
+    label: 'KKS',
+    badge: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200',
+    dot: 'bg-indigo-500',
+  },
+  'kepala-seksi': {
+    label: 'Kepala Seksi',
+    badge: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+    dot: 'bg-rose-500',
+  },
   'quality-control-officer': {
     label: 'Quality Control',
     badge: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
@@ -79,7 +99,7 @@ const ROLE_CONFIG: Record<string, { label: string; badge: string; dot: string }>
 };
 
 const DEFAULT_ROLE_CFG = {
-  label: 'User',
+  label: 'Role Tidak Dikenal',
   badge: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200',
   dot: 'bg-gray-400',
 };
