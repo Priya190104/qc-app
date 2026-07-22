@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import authService from '@/lib/auth';
 import { useAuthStore } from '@/stores';
-import { LoginRequest, RegisterRequest } from '@/types';
+import { LoginRequest } from '@/types';
 
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,26 +19,6 @@ export const useAuth = () => {
         return response;
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || err.message || 'Login failed';
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [setUser, setAuthenticated]
-  );
-
-  const register = useCallback(
-    async (data: RegisterRequest) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await authService.register(data);
-        setUser(response.user);
-        setAuthenticated(true);
-        return response;
-      } catch (err: any) {
-        const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
         setError(errorMessage);
         throw err;
       } finally {
@@ -70,7 +50,6 @@ export const useAuth = () => {
 
   return {
     login,
-    register,
     logout,
     checkAuth,
     isLoading,

@@ -1,17 +1,9 @@
 import { apiClient } from './api';
-import { LoginRequest, RegisterRequest, AuthResponse, ApiResponse } from '@/types';
+import { LoginRequest, AuthResponse, ApiResponse } from '@/types';
 
 class AuthService {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
-    const authData = response.data.data!;
-    // Store in localStorage for backward compat (also set as httpOnly cookie by server)
-    this.setTokens(authData.accessToken, authData.refreshToken);
-    return authData;
-  }
-
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/register', data);
     const authData = response.data.data!;
     // Store in localStorage for backward compat (also set as httpOnly cookie by server)
     this.setTokens(authData.accessToken, authData.refreshToken);

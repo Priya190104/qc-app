@@ -35,7 +35,7 @@ export default function RootLayoutContent({ children }: RootLayoutContentProps) 
   const [showManualUmux, setShowManualUmux] = useState(false);
 
   // Public routes that don't need sidebar
-  const publicRoutes = ['/auth/login', '/auth/register', '/'];
+  const publicRoutes = ['/auth/login', '/'];
 
   const { setUser } = useAuthStore();
 

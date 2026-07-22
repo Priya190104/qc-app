@@ -32,14 +32,6 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  roleIds?: string[];
-}
-
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
@@ -162,14 +154,6 @@ export interface FormError {
 export interface LoginFormData {
   email: string;
   password: string;
-}
-
-export interface RegisterFormData {
-  email: string;
-  password: string;
-  passwordConfirm: string;
-  firstName: string;
-  lastName: string;
 }
 
 // Berkas Types

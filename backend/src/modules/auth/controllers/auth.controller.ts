@@ -14,7 +14,6 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
-import { RegisterDto } from '../dto/register.dto';
 import { AllExceptionsFilter } from '../../../common/filters/http-exception.filter';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
@@ -50,23 +49,6 @@ export class AuthController {
     res.cookie('refreshToken', result.refreshToken, cookieOptions(REFRESH_TOKEN_COOKIE_MAX_AGE));
 
     // Also return tokens in response body for backward compat (localStorage clients)
-    return result;
-  }
-
-  @Post('register')
-  @ApiOperation({ summary: 'Register new user' })
-  @ApiResponse({ status: 201, description: 'User registered' })
-  @ApiResponse({ status: 400, description: 'Bad request' })
-  async register(
-    @Body(ValidationPipe) registerDto: RegisterDto,
-    @Response({ passthrough: true }) res: any
-  ) {
-    const result = await this.authService.register(registerDto);
-
-    // Set tokens as httpOnly cookies
-    res.cookie('accessToken', result.accessToken, cookieOptions(ACCESS_TOKEN_COOKIE_MAX_AGE));
-    res.cookie('refreshToken', result.refreshToken, cookieOptions(REFRESH_TOKEN_COOKIE_MAX_AGE));
-
     return result;
   }
 

@@ -165,6 +165,11 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.jumlahBidang || parseInt(formData.jumlahBidang) <= 0) {
+      setError('Jumlah Bidang wajib diisi dengan angka lebih dari 0.');
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(null);
@@ -374,97 +379,107 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
                   htmlFor="jumlahBidang"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Jumlah Bidang
+                  Jumlah Bidang <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   id="jumlahBidang"
                   name="jumlahBidang"
                   min="1"
+                  required
                   value={formData.jumlahBidang}
                   onChange={handleInputChange}
                   className="w-full md:w-48 px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="0"
+                  placeholder="Jumlah bidang"
                 />
-                {formData.jumlahBidang && parseInt(formData.jumlahBidang) > 0 && (
+                {formData.jumlahBidang && parseInt(formData.jumlahBidang) > 0 ? (
                   <p className="mt-1 text-xs text-purple-600">
                     ↳ {parseInt(formData.jumlahBidang)} bidang — isi data masing-masing bidang di
                     bawah
                   </p>
+                ) : (
+                  <p className="mt-1 text-xs text-gray-400">
+                    Isi jumlah bidang terlebih dahulu untuk menampilkan form data bidang.
+                  </p>
                 )}
               </div>
 
-              {/* Dynamic rows per bidang */}
-              {bidangItems.map((item, index) => (
-                <React.Fragment key={index}>
-                  <div className="md:col-span-2">
-                    <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
-                      <h4 className="text-sm font-semibold text-purple-800 mb-3">
-                        Bidang {index + 1}
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Luas Hasil Ukur */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Luas Hasil Ukur (m²)
-                          </label>
-                          <input
-                            type="number"
-                            value={item.luasHasilUkur}
-                            onChange={(e) =>
-                              handleBidangItemChange(index, 'luasHasilUkur', e.target.value)
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
-                            placeholder="0"
-                          />
-                        </div>
+              {/* Dynamic rows per bidang — only shown when jumlahBidang > 0 */}
+              {parseInt(formData.jumlahBidang) > 0 &&
+                bidangItems.map((item, index) => (
+                  <React.Fragment key={index}>
+                    <div className="md:col-span-2">
+                      <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                        <h4 className="text-sm font-semibold text-purple-800 mb-3">
+                          Bidang {index + 1}
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Luas Hasil Ukur */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Luas Hasil Ukur (m²)
+                            </label>
+                            <input
+                              type="number"
+                              value={item.luasHasilUkur}
+                              onChange={(e) =>
+                                handleBidangItemChange(index, 'luasHasilUkur', e.target.value)
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                              placeholder="0"
+                            />
+                          </div>
 
-                        {/* NIB */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            NIB
-                          </label>
-                          <input
-                            type="text"
-                            value={item.nib}
-                            onChange={(e) => handleBidangItemChange(index, 'nib', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
-                            placeholder="Masukkan NIB"
-                          />
-                        </div>
+                          {/* NIB */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              NIB
+                            </label>
+                            <input
+                              type="text"
+                              value={item.nib}
+                              onChange={(e) => handleBidangItemChange(index, 'nib', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                              placeholder="Masukkan NIB"
+                            />
+                          </div>
 
-                        {/* NIBEL */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            NIBEL
-                          </label>
-                          <input
-                            type="text"
-                            value={item.nibel}
-                            onChange={(e) => handleBidangItemChange(index, 'nibel', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
-                            placeholder="Masukkan NIBEL"
-                          />
-                        </div>
+                          {/* NIBEL */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              NIBEL
+                            </label>
+                            <input
+                              type="text"
+                              value={item.nibel}
+                              onChange={(e) =>
+                                handleBidangItemChange(index, 'nibel', e.target.value)
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                              placeholder="Masukkan NIBEL"
+                            />
+                          </div>
 
-                        {/* No. SU */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            No. SU
-                          </label>
-                          <input
-                            type="text"
-                            value={item.noSU}
-                            onChange={(e) => handleBidangItemChange(index, 'noSU', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
-                            placeholder="Masukkan No. SU"
-                          />
+                          {/* No. SU */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              No. SU
+                            </label>
+                            <input
+                              type="text"
+                              value={item.noSU}
+                              onChange={(e) =>
+                                handleBidangItemChange(index, 'noSU', e.target.value)
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 text-sm"
+                              placeholder="Masukkan No. SU"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </React.Fragment>
-              ))}
+                  </React.Fragment>
+                ))}
 
               {/* Catatan Validasi */}
               <div className="md:col-span-2">
@@ -505,7 +520,7 @@ export default function ValidasiBerkasPetugasPemetaanPage() {
 
         {activeTab === 'detail' && <BerkasDetailTab berkas={berkas as any} />}
 
-          {activeTab === 'history' && <BerkasHistoryTab history={(berkas as any)?.history} />}
+        {activeTab === 'history' && <BerkasHistoryTab history={(berkas as any)?.history} />}
 
         {activeTab === 'catatan' && (
           <BerkasCatatanTab berkasId={id} initialDeskripsi={berkas?.deskripsi} />

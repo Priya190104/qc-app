@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert } from '@/components/ui';
 import useAuth from '@/hooks/useAuth';
@@ -277,17 +276,6 @@ export const LoginForm: React.FC = () => {
           )}
         </button>
       </form>
-
-      {/* Register link */}
-      <div className="mt-6 text-center text-sm text-gray-500">
-        Belum punya akun?{' '}
-        <Link
-          href="/auth/register"
-          className="text-blue-600 hover:text-blue-700 font-semibold hover:underline underline-offset-2 transition-colors"
-        >
-          Daftar di sini
-        </Link>
-      </div>
     </div>
   );
 };
