@@ -31,9 +31,6 @@ async function bootstrap() {
   // Exception filter
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  // Global prefix
-  app.setGlobalPrefix('api');
-
   // CORS
   const corsOrigin = configService.get('CORS_ORIGIN', 'http://localhost:3000').split(',');
   app.enableCors({
