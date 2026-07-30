@@ -147,11 +147,11 @@ model BerkasHistory {
   newStatus   String?
   oldAssignee String?  @db.Uuid
   newAssignee String?  @db.Uuid
-  changedById String   @db.Uuid
+  changedById String?  @db.Uuid
   reason      String?
   changedAt   DateTime @default(now())
   berkas      Berkas   @relation(fields: [berkasId], references: [id], onDelete: Cascade)
-  User        User     @relation(fields: [changedById], references: [id])
+  User        User?    @relation(fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([berkasId])
   @@index([changedAt(sort: Desc)])
