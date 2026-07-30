@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/config/prisma.service';
 import { CreateUmuxDto } from './dto/create-umux.dto';
 
-/** UMUX-Lite score formula: ((Q1 + Q3 + (8−Q2) + (8−Q4)) − 4) / 24 × 100 */
+/** UMUX-Lite score formula: ((q1−1) + (7−q2) + (q3−1) + (7−q4)) / 24 × 100, rounded to 1 decimal place */
 function calcUmuxScore(q1: number, q2: number, q3: number, q4: number): number {
-  return Math.round(((q1 + q3 + (8 - q2) + (8 - q4) - 4) / 24) * 100);
+  return Math.round(((q1 - 1 + (7 - q2) + (q3 - 1) + (7 - q4)) / 24) * 1000) / 10;
 }
 
 @Injectable()

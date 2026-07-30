@@ -224,7 +224,7 @@ model UmuxResponse {
   q2          Int      // Negatif: Merasa kesulitan (1–7)
   q3          Int      // Positif: Mudah digunakan (1–7)
   q4          Int      // Negatif: Butuh bantuan teknis (1–7)
-  score       Int      // Skor UMUX 0–100 yang dihitung dari formula UMUX-Lite
+  score       Float    // Skor UMUX 0–100 yang dihitung dari formula UMUX-Lite (1 desimal)
   submittedAt DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
