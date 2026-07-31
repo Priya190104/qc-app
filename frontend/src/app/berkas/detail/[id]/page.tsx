@@ -535,16 +535,21 @@ export default function BerkasDetailPage() {
           <div className="border-t border-gray-100 bg-gray-50 px-5 py-4">
             <p className="text-xs font-semibold text-gray-400 mb-3">ALUR PROSES</p>
             <div className="overflow-x-auto -mx-1">
-              <div className="flex items-start gap-0 min-w-max px-1">
+              <ol className="flex items-start min-w-[720px] px-1">
                 {WORKFLOW_STAGES.map((stage, idx) => {
                   const isCompleted = currentStage > idx;
                   const isCurrent = currentStage === idx;
+                  const isFirst = idx === 0;
+                  const isLast = idx === WORKFLOW_STAGES.length - 1;
 
                   return (
-                    <React.Fragment key={stage.key}>
-                      <div className="flex flex-col items-center gap-1.5">
+                    <li key={stage.key} className="flex-1 min-w-0 flex flex-col items-center">
+                      <div className="flex w-full items-center">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${isCompleted ? 'bg-blue-600 text-white' : isCurrent ? 'bg-white border-2 border-blue-600 text-blue-600 shadow-sm' : 'bg-white border-2 border-gray-200 text-gray-300'}`}
+                          className={`flex-1 h-0.5 ${isFirst ? 'invisible' : currentStage >= idx ? 'bg-blue-600' : 'bg-gray-200'}`}
+                        />
+                        <div
+                          className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center text-xs font-semibold ${isCompleted ? 'bg-blue-600 text-white' : isCurrent ? 'bg-white border-2 border-blue-600 text-blue-600 shadow-sm' : 'bg-white border-2 border-gray-200 text-gray-300'}`}
                         >
                           {isCompleted ? (
                             <svg
@@ -564,21 +569,19 @@ export default function BerkasDetailPage() {
                             <span>{idx + 1}</span>
                           )}
                         </div>
-                        <span
-                          className={`text-[10px] font-medium whitespace-nowrap ${isCurrent ? 'text-blue-600 font-semibold' : isCompleted ? 'text-gray-500' : 'text-gray-300'}`}
-                        >
-                          {stage.label}
-                        </span>
-                      </div>
-                      {idx < WORKFLOW_STAGES.length - 1 && (
                         <div
-                          className={`h-0.5 w-8 mt-4 mx-1 flex-shrink-0 ${currentStage > idx ? 'bg-blue-600' : 'bg-gray-200'}`}
+                          className={`flex-1 h-0.5 ${isLast ? 'invisible' : currentStage > idx ? 'bg-blue-600' : 'bg-gray-200'}`}
                         />
-                      )}
-                    </React.Fragment>
+                      </div>
+                      <span
+                        className={`mt-1.5 text-[10px] font-medium text-center ${isCurrent ? 'text-blue-600 font-semibold' : isCompleted ? 'text-gray-500' : 'text-gray-300'}`}
+                      >
+                        {stage.label}
+                      </span>
+                    </li>
                   );
                 })}
-              </div>
+              </ol>
             </div>
           </div>
         ) : (
