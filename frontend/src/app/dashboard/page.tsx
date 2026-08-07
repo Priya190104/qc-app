@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Alert, PageHeader, Modal, ModalHeader, ModalBody, LoadingSpinner } from '@/components/ui';
 import { apiClient } from '@/lib/api';
 import { useDashboardMetrics, useDashboardPetugasStats } from '@/hooks/useQueryHooks';
@@ -15,6 +15,9 @@ import {
   AlertTriangle,
   ChevronRight,
   Inbox,
+  Eye,
+  RotateCcw,
+  FileText,
 } from 'lucide-react';
 
 interface DashboardMetrics {
@@ -67,38 +70,51 @@ interface BerkasSummaryItem {
 
 function KpiSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
-      <div className="flex items-start justify-between mb-4">
-        <div className="h-4 w-28 bg-gray-200 rounded-md" />
-        <div className="h-9 w-9 bg-gray-200 rounded-lg" />
+    <div className="rounded-xl border border-gray-200 bg-gray-50/40 p-6 animate-pulse">
+      <div className="flex items-start justify-between mb-5">
+        <div className="h-11 w-11 bg-gray-200 rounded-xl" />
+        <div className="h-7 w-12 bg-gray-200 rounded-lg" />
       </div>
-      <div className="h-8 w-16 bg-gray-200 rounded-md mb-1" />
-      <div className="h-3 w-36 bg-gray-100 rounded-md mb-4" />
-      <div className="space-y-1.5">
-        <div className="flex justify-between">
-          <div className="h-3 w-20 bg-gray-100 rounded-md" />
-          <div className="h-4 w-10 bg-gray-200 rounded-md" />
-        </div>
-        <div className="h-1.5 bg-gray-100 rounded-full" />
-      </div>
+      <div className="h-10 w-20 bg-gray-200 rounded-md mb-1.5" />
+      <div className="h-4 w-24 bg-gray-200 rounded-md mb-1" />
+      <div className="h-3.5 w-40 bg-gray-100 rounded-md mb-5" />
+      <div className="h-2 bg-gray-100 rounded-full" />
     </div>
   );
 }
 
 function StatusPanelSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
-      <div className="h-5 w-52 bg-gray-200 rounded-md mb-2" />
-      <div className="h-3 w-72 bg-gray-100 rounded-md mb-5" />
-      <div className="h-6 w-full bg-gray-200 rounded-lg mb-6" />
-      <div className="space-y-3">
-        {[40, 90, 70, 55, 80, 60, 45, 75, 65, 50, 85, 35].map((w, i) => (
-          <div key={i} className="flex items-center gap-3 h-5">
-            <div className="h-3.5 bg-gray-200 rounded-md shrink-0" style={{ width: 128 }} />
-            <div className="flex-1 h-5 bg-gray-100 rounded-sm overflow-hidden">
-              <div className="h-full bg-gray-200 rounded-sm" style={{ width: `${w}%` }} />
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
+      <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex items-start justify-between">
+        <div className="space-y-1.5">
+          <div className="h-5 w-40 bg-gray-200 rounded-md" />
+          <div className="h-4 w-64 bg-gray-100 rounded-md" />
+        </div>
+        <div className="space-y-1 text-right">
+          <div className="h-8 w-12 bg-gray-200 rounded-md" />
+          <div className="h-3 w-16 bg-gray-100 rounded-md" />
+        </div>
+      </div>
+      <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="rounded-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 flex items-center gap-3">
+              <div className="h-7 w-7 bg-gray-200 rounded-lg shrink-0" />
+              <div className="flex-1 space-y-1">
+                <div className="h-3.5 w-24 bg-gray-200 rounded-md" />
+                <div className="h-3 w-32 bg-gray-100 rounded-md" />
+              </div>
+              <div className="h-6 w-8 bg-gray-200 rounded-md shrink-0" />
             </div>
-            <div className="h-3.5 w-7 bg-gray-200 rounded-md shrink-0" />
+            <div className="px-4 py-3 space-y-2">
+              {[0, 1].map((j) => (
+                <div key={j} className="flex items-center justify-between gap-2">
+                  <div className="h-3 bg-gray-100 rounded-md flex-1" />
+                  <div className="h-3.5 w-6 bg-gray-200 rounded-md shrink-0" />
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
@@ -109,17 +125,24 @@ function StatusPanelSkeleton() {
 function PetugasSectionSkeleton() {
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
-      <div className="px-5 py-4 border-b border-gray-100">
-        <div className="h-4 w-36 bg-gray-200 rounded-md" />
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+        <div className="h-7 w-7 bg-gray-200 rounded-lg shrink-0" />
+        <div className="space-y-1">
+          <div className="h-4 w-36 bg-gray-200 rounded-md" />
+          <div className="h-3 w-20 bg-gray-100 rounded-md" />
+        </div>
       </div>
       <div className="p-4 space-y-2.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg">
-            <div className="h-9 w-9 bg-gray-200 rounded-full shrink-0" />
+          <div key={i} className="flex items-center gap-3 p-3.5 border border-gray-100 rounded-lg">
+            <div className="h-10 w-10 bg-gray-200 rounded-full shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="h-3.5 w-32 bg-gray-200 rounded-md" />
               <div className="h-3 w-20 bg-gray-100 rounded-md" />
-              <div className="h-2 w-full bg-gray-100 rounded-full" />
+              <div className="flex gap-3">
+                <div className="h-3 w-16 bg-gray-100 rounded-md" />
+                <div className="h-5 w-20 bg-gray-100 rounded-full" />
+              </div>
             </div>
             <div className="h-4 w-4 bg-gray-200 rounded shrink-0" />
           </div>
@@ -131,12 +154,12 @@ function PetugasSectionSkeleton() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6" aria-busy="true" aria-label="Memuat dashboard">
+    <div className="space-y-8" aria-busy="true" aria-label="Memuat dashboard">
       <div className="animate-pulse space-y-2">
         <div className="h-7 w-36 bg-gray-200 rounded-md" />
         <div className="h-4 w-72 bg-gray-100 rounded-md" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[0, 1, 2, 3].map((i) => (
           <KpiSkeleton key={i} />
         ))}
@@ -154,27 +177,35 @@ function DashboardSkeleton() {
 
 const KPI_CFG = {
   blue: {
-    icon: 'bg-blue-50 text-blue-600',
-    num: 'text-gray-900',
+    container: 'border-blue-200 bg-blue-50/50',
+    icon: 'bg-blue-100 text-blue-700',
+    num: 'text-blue-900',
     bar: 'bg-blue-500',
-    badge: 'text-blue-700 bg-blue-50',
+    barTrack: 'bg-blue-100',
+    badge: 'text-blue-700 bg-blue-100',
   },
   amber: {
-    icon: 'bg-amber-50 text-amber-600',
-    num: 'text-amber-700',
+    container: 'border-amber-200 bg-amber-50/50',
+    icon: 'bg-amber-100 text-amber-700',
+    num: 'text-amber-900',
     bar: 'bg-amber-500',
-    badge: 'text-amber-700 bg-amber-50',
+    barTrack: 'bg-amber-100',
+    badge: 'text-amber-700 bg-amber-100',
   },
   green: {
-    icon: 'bg-green-50 text-green-600',
-    num: 'text-green-700',
+    container: 'border-green-200 bg-green-50/50',
+    icon: 'bg-green-100 text-green-700',
+    num: 'text-green-900',
     bar: 'bg-green-500',
-    badge: 'text-green-700 bg-green-50',
+    barTrack: 'bg-green-100',
+    badge: 'text-green-700 bg-green-100',
   },
   slate: {
+    container: 'border-slate-200 bg-slate-50/50',
     icon: 'bg-slate-100 text-slate-600',
-    num: 'text-slate-700',
+    num: 'text-slate-800',
     bar: 'bg-slate-400',
+    barTrack: 'bg-slate-100',
     badge: 'text-slate-600 bg-slate-100',
   },
 } as const;
@@ -198,46 +229,41 @@ function KpiCard({
 }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   const c = KPI_CFG[color];
-  const showBar = color !== 'blue' && total > 0;
+  const showPct = color !== 'blue' && total > 0;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-start justify-between mb-4">
-        <p className="text-sm font-medium text-gray-500">{label}</p>
-        <div className={`p-2 rounded-lg ${c.icon}`}>
-          <Icon className="w-4 h-4" aria-hidden="true" />
+    <div
+      className={`rounded-xl border ${c.container} p-6 transition-shadow duration-200 hover:shadow-sm`}
+    >
+      <div className="flex items-start justify-between mb-5">
+        <div className={`p-3 rounded-xl ${c.icon}`}>
+          <Icon className="w-5 h-5" aria-hidden="true" />
         </div>
+        {showPct && (
+          <span className={`text-sm font-semibold tabular-nums px-2 py-1 rounded-lg ${c.badge}`}>
+            {pct}%
+          </span>
+        )}
       </div>
-      <p className={`text-3xl font-bold tabular-nums tracking-tight ${c.num}`}>
+      <p className={`text-4xl font-bold tabular-nums tracking-tight ${c.num}`}>
         {value.toLocaleString('id-ID')}
       </p>
-      <p className="text-xs text-gray-400 mt-0.5 mb-3 leading-snug">{description}</p>
-      {showBar ? (
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">dari total berkas</span>
-            <span
-              className={`text-xs font-semibold tabular-nums px-1.5 py-0.5 rounded-md ${c.badge}`}
-            >
-              {pct}%
-            </span>
-          </div>
+      <p className="text-sm font-semibold text-gray-800 mt-1 leading-snug">{label}</p>
+      <p className="text-sm text-gray-500 mt-0.5 mb-4 leading-snug">{description}</p>
+      {showPct && (
+        <div
+          className={`h-2.5 ${c.barTrack} rounded-full overflow-hidden`}
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${pct}% dari total berkas`}
+        >
           <div
-            className="h-1.5 bg-gray-100 rounded-full overflow-hidden"
-            role="progressbar"
-            aria-valuenow={pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`${pct}% dari total berkas`}
-          >
-            <div
-              className={`h-full rounded-full transition-all duration-700 ease-out ${c.bar}`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
+            className={`h-full rounded-full transition-all duration-700 ease-out ${c.bar}`}
+            style={{ width: `${pct}%` }}
+          />
         </div>
-      ) : (
-        <div className="h-8" />
       )}
     </div>
   );
@@ -245,182 +271,182 @@ function KpiCard({
 
 // â”€â”€ Status Distribution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const STATUS_LIST = [
-  { key: 'dibuat', label: 'Dibuat', bar: 'bg-slate-400', seg: '#94a3b8', group: 'Input' },
+const STATUS_LABELS: Record<string, string> = {
+  dibuat: 'Dibuat',
+  pemilihanKKS: 'Pemilihan KKS',
+  diKKS: 'Di KKS',
+  diOperatorDataUkur: 'Operator Data Ukur',
+  diPetugasUkur: 'Petugas Ukur',
+  diOperatorDataPemetaan: 'Operator Data Pemetaan',
+  diPetugasPemetaan: 'Petugas Pemetaan',
+  diKepalaSeksi: 'Kepala Seksi',
+  revisiKKS: 'Revisi KKS',
+  revisiKasi: 'Revisi Kepala Seksi',
+  selesai: 'Selesai',
+  ditutup: 'Ditutup',
+};
+
+const PHASES = [
   {
-    key: 'pemilihanKKS',
-    label: 'Pemilihan KKS',
-    bar: 'bg-blue-400',
-    seg: '#60a5fa',
-    group: 'Pengukuran',
-  },
-  { key: 'diKKS', label: 'Di KKS', bar: 'bg-blue-600', seg: '#2563eb', group: 'Pengukuran' },
-  {
-    key: 'diOperatorDataUkur',
-    label: 'Op. Data Ukur',
-    bar: 'bg-indigo-400',
-    seg: '#818cf8',
-    group: 'Pengukuran',
-  },
-  {
-    key: 'diPetugasUkur',
-    label: 'Petugas Ukur',
-    bar: 'bg-indigo-600',
-    seg: '#4f46e5',
-    group: 'Pengukuran',
-  },
-  {
-    key: 'diOperatorDataPemetaan',
-    label: 'Op. Data Pemetaan',
-    bar: 'bg-violet-500',
-    seg: '#8b5cf6',
-    group: 'Pemetaan',
+    key: 'input',
+    label: 'Tahap Input',
+    desc: 'Berkas baru masuk sistem',
+    icon: FileText,
+    headerBg: 'bg-slate-50',
+    headerBorder: 'border-slate-200',
+    iconBg: 'bg-slate-100',
+    iconColor: 'text-slate-600',
+    countColor: 'text-slate-700',
+    statuses: ['dibuat'],
+    isAlert: false,
   },
   {
-    key: 'diPetugasPemetaan',
-    label: 'Petugas Pemetaan',
-    bar: 'bg-violet-700',
-    seg: '#6d28d9',
-    group: 'Pemetaan',
+    key: 'pengukuran',
+    label: 'Tahap Pengukuran',
+    desc: 'Pengukuran dan pengolahan data',
+    icon: Ruler,
+    headerBg: 'bg-blue-50',
+    headerBorder: 'border-blue-200',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-700',
+    countColor: 'text-blue-800',
+    statuses: ['pemilihanKKS', 'diKKS', 'diOperatorDataUkur', 'diPetugasUkur'],
+    isAlert: false,
   },
   {
-    key: 'diKepalaSeksi',
-    label: 'Kepala Seksi',
-    bar: 'bg-purple-600',
-    seg: '#9333ea',
-    group: 'Review',
+    key: 'pemetaan',
+    label: 'Tahap Pemetaan',
+    desc: 'Penggambaran dan pengolahan peta',
+    icon: Map,
+    headerBg: 'bg-indigo-50',
+    headerBorder: 'border-indigo-200',
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-700',
+    countColor: 'text-indigo-800',
+    statuses: ['diOperatorDataPemetaan', 'diPetugasPemetaan'],
+    isAlert: false,
   },
-  { key: 'revisiKKS', label: 'Revisi KKS', bar: 'bg-amber-500', seg: '#f59e0b', group: 'Revisi' },
   {
-    key: 'revisiKasi',
-    label: 'Revisi Kasi',
-    bar: 'bg-orange-500',
-    seg: '#f97316',
-    group: 'Revisi',
+    key: 'review',
+    label: 'Tahap Review',
+    desc: 'Pemeriksaan oleh kepala seksi',
+    icon: Eye,
+    headerBg: 'bg-purple-50',
+    headerBorder: 'border-purple-200',
+    iconBg: 'bg-purple-100',
+    iconColor: 'text-purple-700',
+    countColor: 'text-purple-800',
+    statuses: ['diKepalaSeksi'],
+    isAlert: false,
   },
-  { key: 'selesai', label: 'Selesai', bar: 'bg-green-500', seg: '#22c55e', group: 'Final' },
-  { key: 'ditutup', label: 'Ditutup', bar: 'bg-gray-400', seg: '#9ca3af', group: 'Final' },
-] as const;
+  {
+    key: 'revisi',
+    label: 'Perlu Revisi',
+    desc: 'Berkas dikembalikan untuk perbaikan',
+    icon: RotateCcw,
+    headerBg: 'bg-amber-50',
+    headerBorder: 'border-amber-300',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-700',
+    countColor: 'text-amber-800',
+    statuses: ['revisiKKS', 'revisiKasi'],
+    isAlert: true,
+  },
+  {
+    key: 'final',
+    label: 'Selesai & Ditutup',
+    desc: 'Berkas telah selesai diproses',
+    icon: CheckCircle2,
+    headerBg: 'bg-green-50',
+    headerBorder: 'border-green-200',
+    iconBg: 'bg-green-100',
+    iconColor: 'text-green-700',
+    countColor: 'text-green-800',
+    statuses: ['selesai', 'ditutup'],
+    isAlert: false,
+  },
+];
 
 function StatusDistributionPanel({
   distribution,
 }: {
   distribution: DashboardMetrics['statusDistribution'];
 }) {
-  const rows = useMemo(
-    () =>
-      STATUS_LIST.map((s) => ({
-        ...s,
-        value: (distribution as Record<string, number>)[s.key] ?? 0,
-      })),
-    [distribution]
-  );
-  const grandTotal = useMemo(() => rows.reduce((sum, r) => sum + r.value, 0), [rows]);
-  const maxValue = useMemo(() => Math.max(...rows.map((r) => r.value), 1), [rows]);
-
-  const groups = useMemo(() => {
-    const g: Record<string, typeof rows> = {};
-    rows.forEach((r) => {
-      if (!g[r.group]) g[r.group] = [];
-      g[r.group].push(r);
-    });
-    return Object.entries(g);
-  }, [rows]);
+  const dist = distribution as Record<string, number>;
+  const grandTotal = Object.values(dist).reduce((s, v) => s + v, 0);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="px-6 pt-5 pb-4 border-b border-gray-100">
-        <h2 className="text-sm font-semibold text-gray-900">Distribusi Status Berkas</h2>
-        <p className="text-xs text-gray-400 mt-0.5">
-          {grandTotal.toLocaleString('id-ID')} berkas terdistribusi di seluruh tahap alur kerja
-        </p>
-      </div>
-
-      {/* Stacked overview bar */}
-      {grandTotal > 0 && (
-        <div className="px-6 pt-4 pb-3">
-          <div
-            className="flex h-6 w-full rounded-md overflow-hidden gap-px"
-            role="img"
-            aria-label="Diagram proporsi status berkas"
-          >
-            {rows
-              .filter((r) => r.value > 0)
-              .map((r) => (
-                <div
-                  key={r.key}
-                  title={`${r.label}: ${r.value}`}
-                  className="h-full"
-                  style={{
-                    width: `${(r.value / grandTotal) * 100}%`,
-                    backgroundColor: r.seg,
-                    minWidth: 2,
-                  }}
-                />
-              ))}
-          </div>
-          <p className="text-[11px] text-gray-400 mt-1.5">
-            Lebar segmen = proporsi berkas per status
+      <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">Alur Proses Berkas</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Total {grandTotal.toLocaleString('id-ID')} berkas terbagi dalam tahapan alur kerja
           </p>
         </div>
-      )}
+        <div className="text-right shrink-0">
+          <p className="text-2xl font-bold tabular-nums text-gray-900">
+            {grandTotal.toLocaleString('id-ID')}
+          </p>
+          <p className="text-xs text-gray-400 leading-tight">total berkas</p>
+        </div>
+      </div>
 
-      {/* Per-status rows grouped by phase */}
-      <div className="px-6 pb-5 pt-1 space-y-0">
-        {groups.map(([groupName, groupRows]) => (
-          <div key={groupName} className="mb-4 last:mb-0">
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2 pt-1">
-              {groupName}
-            </p>
-            <div className="space-y-1.5">
-              {groupRows.map((r) => {
-                const barPct = (r.value / maxValue) * 100;
-                const isRevisi = r.group === 'Revisi';
-                return (
-                  <div key={r.key} className="flex items-center gap-3 h-5">
-                    <span
-                      className={`text-xs shrink-0 text-right leading-tight ${isRevisi ? 'text-amber-700 font-medium' : 'text-gray-600'}`}
-                      style={{ width: 128 }}
-                    >
-                      {isRevisi && (
-                        <AlertTriangle
-                          className="inline w-3 h-3 mr-1 text-amber-400 -mt-px"
-                          aria-hidden="true"
-                        />
-                      )}
-                      {r.label}
-                    </span>
-                    <div className="flex-1 h-5 bg-gray-100 rounded-sm overflow-hidden">
-                      {r.value > 0 && (
-                        <div
-                          className={`h-full ${r.bar} rounded-sm flex items-center justify-end transition-all duration-500 ease-out`}
-                          style={{ width: `${Math.max(barPct, 2)}%` }}
-                        >
-                          {barPct > 12 && (
-                            <span className="text-white text-[10px] font-bold pr-1.5 tabular-nums">
-                              {r.value}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <span
-                      className={`text-xs font-semibold tabular-nums shrink-0 w-7 text-right ${
-                        r.value === 0
-                          ? 'text-gray-300'
-                          : isRevisi
-                            ? 'text-amber-700'
-                            : 'text-gray-700'
-                      }`}
-                    >
-                      {r.value}
-                    </span>
+      <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {PHASES.map((phase) => {
+          const PhaseIcon = phase.icon;
+          const phaseTotal = phase.statuses.reduce((s, k) => s + (dist[k] ?? 0), 0);
+          return (
+            <div
+              key={phase.key}
+              className={`rounded-lg border ${phase.headerBorder} overflow-hidden`}
+            >
+              <div className={`${phase.headerBg} px-4 py-3 flex items-center gap-3`}>
+                <div className={`${phase.iconBg} p-1.5 rounded-lg shrink-0`}>
+                  <PhaseIcon className={`w-4 h-4 ${phase.iconColor}`} aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm font-semibold ${phase.countColor} leading-tight`}>
+                    {phase.label}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">{phase.desc}</p>
+                </div>
+                <span className={`text-xl font-bold tabular-nums ${phase.countColor} shrink-0`}>
+                  {phaseTotal}
+                </span>
+              </div>
+
+              <div className="px-4 py-3 bg-white space-y-2">
+                {phase.isAlert && phaseTotal > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs text-amber-700 mb-1">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                    <span className="font-medium">Memerlukan perhatian segera</span>
                   </div>
-                );
-              })}
+                )}
+                {phase.statuses.map((statusKey) => {
+                  const count = dist[statusKey] ?? 0;
+                  return (
+                    <div key={statusKey} className="flex items-center justify-between gap-2">
+                      <span className="text-sm text-gray-600 leading-tight">
+                        {STATUS_LABELS[statusKey]}
+                      </span>
+                      <span
+                        className={`text-sm font-semibold tabular-nums shrink-0 ${
+                          count === 0 ? 'text-gray-300' : 'text-gray-800'
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </div>
+                  );
+                })}
+                {phaseTotal === 0 && (
+                  <p className="text-xs text-gray-400 italic py-0.5">Tidak ada berkas</p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -430,53 +456,44 @@ function StatusDistributionPanel({
 
 function PetugasCard({
   petugas,
-  maxTotal,
   accentClass,
   onClick,
 }: {
   petugas: PetugasStat;
-  maxTotal: number;
   accentClass: string;
   onClick: () => void;
 }) {
   const total = petugas.jumlahProses + petugas.jumlahRevisi;
-  const prosePct = total > 0 ? (petugas.jumlahProses / total) * 100 : 0;
-  const loadPct = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
   const hasRevisi = petugas.jumlahRevisi > 0;
 
   return (
     <button
       onClick={onClick}
-      className="w-full text-left flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 group"
+      className="w-full text-left flex items-center gap-3 p-3.5 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50/30 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 group"
     >
       <div
-        className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${accentClass}`}
+        className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 ${accentClass}`}
         aria-label={`Total ${total} berkas`}
       >
         {total}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900 truncate leading-tight">{petugas.nama}</p>
-        <p className="text-[11px] text-gray-400 mb-1.5">{petugas.nip}</p>
-        <div className="flex items-center gap-2">
-          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-100 rounded-full overflow-hidden"
-              style={{ width: `${loadPct}%` }}
-            >
-              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${prosePct}%` }} />
-            </div>
-          </div>
-          <span className="text-[10px] text-gray-400 tabular-nums shrink-0 w-16 text-right">
-            {petugas.jumlahProses}p{' '}
-            {hasRevisi && (
-              <span className="text-amber-600 font-semibold">{petugas.jumlahRevisi}r</span>
-            )}
+        <p className="text-xs text-gray-500 mb-2">{petugas.nip}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-gray-600">
+            <span className="font-semibold text-gray-800">{petugas.jumlahProses}</span> Proses
           </span>
+          {hasRevisi && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+              <AlertTriangle className="w-3 h-3" aria-hidden="true" />
+              {petugas.jumlahRevisi} Revisi
+            </span>
+          )}
         </div>
       </div>
       <ChevronRight
-        className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 shrink-0 transition-colors"
+        className="w-4 h-4 text-gray-300 group-hover:text-blue-400 shrink-0 transition-colors"
         aria-hidden="true"
       />
     </button>
@@ -498,26 +515,26 @@ function PetugasSection({
   tipe: 'ukur' | 'pemetaan';
   onCardClick: (petugas: PetugasStat, tipe: 'ukur' | 'pemetaan') => void;
 }) {
-  const maxTotal = useMemo(
-    () => Math.max(...data.map((p) => p.jumlahProses + p.jumlahRevisi), 1),
-    [data]
-  );
   const totalRevisi = data.reduce((s, p) => s + p.jumlahRevisi, 0);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-          {data.length > 0 && (
-            <span className="text-xs text-gray-400 font-normal">({data.length} petugas)</span>
-          )}
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 bg-gray-100 rounded-lg shrink-0">
+            <Icon className="w-4 h-4 text-gray-600" aria-hidden="true" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+            {data.length > 0 && (
+              <p className="text-xs text-gray-500">{data.length} petugas terdaftar</p>
+            )}
+          </div>
         </div>
         {totalRevisi > 0 && (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-            <AlertTriangle className="w-3 h-3" aria-hidden="true" />
-            {totalRevisi} revisi
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+            <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+            {totalRevisi} berkas perlu revisi
           </span>
         )}
       </div>
@@ -536,7 +553,6 @@ function PetugasSection({
               <PetugasCard
                 key={p.id}
                 petugas={p}
-                maxTotal={maxTotal}
                 accentClass={accentClass}
                 onClick={() => onCardClick(p, tipe)}
               />
@@ -545,16 +561,18 @@ function PetugasSection({
         )}
       </div>
       {data.length > 0 && (
-        <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 flex gap-4 text-xs text-gray-500">
-          <span>
-            <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5" />
-            Proses
-          </span>
-          <span>
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5" />
-            Revisi
-          </span>
-          <span className="ml-auto text-gray-400">Klik kartu untuk detail berkas</span>
+        <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+          <div className="flex gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500" />
+              Berkas proses
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500" />
+              Perlu revisi
+            </span>
+          </div>
+          <span className="text-gray-400">Klik untuk lihat detail berkas</span>
         </div>
       )}
     </div>
@@ -606,7 +624,7 @@ export default function DashboardPage() {
   const total = metrics?.summary?.totalBerkas ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Detail berkas per petugas */}
       <Modal
         isOpen={modalOpen && !!modalPetugas}
@@ -702,7 +720,7 @@ export default function DashboardPage() {
       {/* â”€â”€ KPI Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {metrics && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <KpiCard
               label="Total Berkas"
               value={total}
@@ -717,15 +735,15 @@ export default function DashboardPage() {
               total={total}
               color="amber"
               icon={Timer}
-              description="Sedang diproses oleh tim"
+              description="Berkas yang masih dalam tahap proses"
             />
             <KpiCard
-              label="Selesai"
+              label="Sudah Selesai"
               value={metrics.summary?.completedBerkas ?? 0}
               total={total}
               color="green"
               icon={CheckCircle2}
-              description="Berkas selesai diproses"
+              description="Berkas yang telah selesai diproses"
             />
             <KpiCard
               label="Ditutup"
@@ -733,7 +751,7 @@ export default function DashboardPage() {
               total={total}
               color="slate"
               icon={Lock}
-              description="Berkas telah ditutup"
+              description="Berkas yang sudah ditutup"
             />
           </div>
 

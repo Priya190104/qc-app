@@ -107,7 +107,10 @@ class APIClient {
           } catch (err) {
             this.failedQueue = [];
             this.clearTokens();
-            window.location.href = '/auth/login';
+            // Guard prevents hard-reload loop when already on login page
+            if (typeof window !== 'undefined' && window.location.pathname !== '/auth/login') {
+              window.location.href = '/auth/login';
+            }
             return Promise.reject(err);
           } finally {
             this.refreshing = false;

@@ -44,66 +44,67 @@ export default function RootLayoutContent({ children }: RootLayoutContentProps) 
     setSidebarMobileOpen(false);
   }, [pathname, setSidebarMobileOpen]);
 
+  // Lightweight sync: update auth state on every route change
   useEffect(() => {
-    // Re-check on every route change so login/logout is reflected immediately
-    const isAuth = authService.isAuthenticated();
-    setIsAuthenticated(isAuth);
-
-    // Fetch /auth/me to restore full user info (including roles) regardless of token age
-    if (isAuth) {
-      import('@/lib/api').then(({ apiClient }) => {
-        apiClient
-          .get<any>('/auth/me')
-          .then((res) => {
-            const u = res.data?.data ?? res.data;
-            if (u?.id) {
-              setUser({
-                id: u.id,
-                email: u.email ?? '',
-                firstName: u.firstName ?? '',
-                lastName: u.lastName ?? '',
-                isActive: true,
-                createdAt: '',
-                updatedAt: '',
-                roles: Array.isArray(u.roles)
-                  ? u.roles.map((r: any) => (typeof r === 'string' ? { id: '', name: r } : r))
-                  : [],
-              });
-            }
-          })
-          .catch(() => {
-            // Fallback: decode header if API call fails (e.g. during token refresh)
-            try {
-              const token = localStorage.getItem(
-                process.env.NEXT_PUBLIC_ACCESS_TOKEN_KEY || 'accessToken'
-              );
-              if (token) {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.sub) {
-                  setUser({
-                    id: payload.sub,
-                    email: payload.email ?? '',
-                    firstName: payload.firstName ?? '',
-                    lastName: payload.lastName ?? '',
-                    isActive: true,
-                    createdAt: '',
-                    updatedAt: '',
-                    roles: Array.isArray(payload.roles)
-                      ? payload.roles.map((r: string) => ({ id: '', name: r }))
-                      : [],
-                  });
-                }
-              }
-            } catch {
-              // ignore
-            }
-          });
-      });
-    }
+    setIsAuthenticated(authService.isAuthenticated());
   }, [pathname]);
 
-  // Prevent hydration mismatch by waiting for client-side check
-  if (isAuthenticated === null) {
+  // One-time on mount: fetch full user profile (roles) if already authenticated
+  useEffect(() => {
+    if (!authService.isAuthenticated()) return;
+    import('@/lib/api').then(({ apiClient }) => {
+      apiClient
+        .get<any>('/auth/me')
+        .then((res) => {
+          const u = res.data?.data ?? res.data;
+          if (u?.id) {
+            setUser({
+              id: u.id,
+              email: u.email ?? '',
+              firstName: u.firstName ?? '',
+              lastName: u.lastName ?? '',
+              isActive: true,
+              createdAt: '',
+              updatedAt: '',
+              roles: Array.isArray(u.roles)
+                ? u.roles.map((r: any) => (typeof r === 'string' ? { id: '', name: r } : r))
+                : [],
+            });
+          }
+        })
+        .catch(() => {
+          // Fallback: decode header if API call fails (e.g. during token refresh)
+          try {
+            const token = localStorage.getItem(
+              process.env.NEXT_PUBLIC_ACCESS_TOKEN_KEY || 'accessToken'
+            );
+            if (token) {
+              const payload = JSON.parse(atob(token.split('.')[1]));
+              if (payload.sub) {
+                setUser({
+                  id: payload.sub,
+                  email: payload.email ?? '',
+                  firstName: payload.firstName ?? '',
+                  lastName: payload.lastName ?? '',
+                  isActive: true,
+                  createdAt: '',
+                  updatedAt: '',
+                  roles: Array.isArray(payload.roles)
+                    ? payload.roles.map((r: string) => ({ id: '', name: r }))
+                    : [],
+                });
+              }
+            }
+          } catch {
+            // ignore
+          }
+        });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Don't block public routes — render login page immediately without spinner
+  if (isAuthenticated === null && !publicRoutes.includes(pathname)) {
     return <LoadingSpinner fullPage size="lg" label="Memuat aplikasi..." />;
   }
 
