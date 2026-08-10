@@ -13,6 +13,17 @@ export class FeedbackService {
 
   async submitUmux(userId: string, dto: CreateUmuxDto) {
     const score = calcUmuxScore(dto.q1, dto.q2, dto.q3, dto.q4);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        firstName: true,
+        lastName: true,
+        email: true,
+        roles: { select: { role: { select: { name: true } } }, take: 1 },
+      },
+    });
+
     const response = await this.prisma.umuxResponse.create({
       data: {
         userId,
@@ -21,6 +32,9 @@ export class FeedbackService {
         q3: dto.q3,
         q4: dto.q4,
         score,
+        snapshotName: user ? `${user.firstName} ${user.lastName}`.trim() : null,
+        snapshotEmail: user?.email ?? null,
+        snapshotRole: user?.roles[0]?.role?.name ?? null,
       },
     });
     return response;
@@ -69,8 +83,10 @@ export class FeedbackService {
     return responses.map((r) => ({
       id: r.id,
       userId: r.userId,
-      userName: r.user ? `${r.user.firstName} ${r.user.lastName}`.trim() : '[Akun Dihapus]',
-      userEmail: r.user?.email ?? '',
+      userName: r.user
+        ? `${r.user.firstName} ${r.user.lastName}`.trim()
+        : (r.snapshotName ?? '[Akun Dihapus]'),
+      userEmail: r.user?.email ?? r.snapshotEmail ?? '',
       userRole: r.user?.roles[0]?.role?.name ?? '',
       responses: { q1: r.q1, q2: r.q2, q3: r.q3, q4: r.q4 },
       score: r.score,

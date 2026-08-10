@@ -507,12 +507,20 @@ export class BerkasWorkflowService {
       throw new BadRequestException('Berkas tidak dalam status yang sesuai');
     }
 
+    const approver = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+
     // Update status to SELESAI
     const updatedBerkas = await this.prisma.berkas.update({
       where: { id: berkasId },
       data: {
         status: BerkasStatus.SELESAI,
         approvedById: userId,
+        snapshotApprovedByName: approver
+          ? `${approver.firstName} ${approver.lastName}`.trim()
+          : null,
       },
     });
 

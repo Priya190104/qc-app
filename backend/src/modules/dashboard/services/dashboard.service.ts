@@ -224,7 +224,16 @@ export class DashboardService {
     return {
       data: logs.map((log: any) => ({
         id: log.id,
-        user: log.user,
+        user:
+          log.user ??
+          (log.snapshotUserName
+            ? {
+                id: null,
+                email: log.snapshotUserEmail,
+                firstName: log.snapshotUserName,
+                lastName: '',
+              }
+            : null),
         action: log.action,
         entity: log.entity,
         entityId: log.entityId,

@@ -21,6 +21,11 @@ export class BerkasService {
       throw new BadRequestException(`Berkas dengan nomor ${createBerkasDto.nomor} sudah ada`);
     }
 
+    const creator = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+
     // Use $transaction to ensure all 3 operations are atomic
     // If any step fails, the entire operation is rolled back automatically
     const updatedBerkas = await this.prisma.$transaction(async (tx) => {
@@ -46,6 +51,7 @@ export class BerkasService {
           // Create directly with final status to reduce one UPDATE round-trip
           status: BerkasStatus.DI_OPERATOR_DATA_UKUR,
           createdById: userId,
+          snapshotCreatedByName: creator ? `${creator.firstName} ${creator.lastName}`.trim() : null,
         },
       });
 
@@ -196,7 +202,7 @@ export class BerkasService {
 
     // Return paginated response
     return {
-      data: berkas,
+      data: berkas.map((b) => this.resolveUserSnapshots(b)),
       pagination: {
         page,
         limit,
@@ -208,7 +214,7 @@ export class BerkasService {
 
   // Keep the old method for backward compatibility
   async findAllNoPagination() {
-    return this.prisma.berkas.findMany({
+    const results = await this.prisma.berkas.findMany({
       include: {
         createdBy: {
           select: {
@@ -263,6 +269,7 @@ export class BerkasService {
         createdAt: 'desc',
       },
     });
+    return results.map((b) => this.resolveUserSnapshots(b));
   }
 
   async findById(id: string) {
@@ -325,7 +332,7 @@ export class BerkasService {
       throw new NotFoundException('Berkas tidak ditemukan');
     }
 
-    return berkas;
+    return this.resolveUserSnapshots(berkas);
   }
 
   async update(id: string, updateBerkasDto: UpdateBerkasDto, userId: string) {
@@ -449,6 +456,11 @@ export class BerkasService {
       throw new BadRequestException('Berkas sudah ditutup sebelumnya');
     }
 
+    const closer = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+
     await this.prisma.berkas.update({
       where: { id },
       data: {
@@ -456,6 +468,7 @@ export class BerkasService {
         isClosed: true,
         closedAt: new Date(),
         closedById: userId,
+        snapshotClosedByName: closer ? `${closer.firstName} ${closer.lastName}`.trim() : null,
       },
     });
 
@@ -515,6 +528,22 @@ export class BerkasService {
       },
     });
 
-    return berkas;
+    return berkas.map((b) => this.resolveUserSnapshots(b));
+  }
+
+  private resolveUserSnapshots(berkas: any) {
+    return {
+      ...berkas,
+      createdBy:
+        berkas.createdBy ??
+        (berkas.snapshotCreatedByName
+          ? { firstName: berkas.snapshotCreatedByName, lastName: '', id: null, email: null }
+          : null),
+      approvedBy:
+        berkas.approvedBy ??
+        (berkas.snapshotApprovedByName
+          ? { firstName: berkas.snapshotApprovedByName, lastName: '', id: null, email: null }
+          : null),
+    };
   }
 }

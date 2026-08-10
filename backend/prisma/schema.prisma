@@ -114,6 +114,10 @@ model Berkas {
   revisionCount       Int             @default(0)
   lastRevisionReason  String?
   lastRevisionFrom    String?
+  // Snapshot nama user agar tetap tampil setelah akun dihapus
+  snapshotCreatedByName   String?
+  snapshotApprovedByName  String?
+  snapshotClosedByName    String?
   approvedBy          User?           @relation("approvedBy", fields: [approvedById], references: [id])
   createdBy           User?           @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
   petugasUkur         Petugas?        @relation("petugasUkur", fields: [petugasUkurId], references: [id])
@@ -205,6 +209,9 @@ model AuditLog {
   ipAddress   String?
   userAgent   String?
   statusCode  Int?
+  // Snapshot nama user agar tetap tampil setelah akun dihapus
+  snapshotUserName   String?
+  snapshotUserEmail  String?
   createdAt   DateTime @default(now())
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -226,6 +233,10 @@ model UmuxResponse {
   q4          Int      // Negatif: Butuh bantuan teknis (1–7)
   score       Float    // Skor UMUX 0–100 yang dihitung dari formula UMUX-Lite (1 desimal)
   submittedAt DateTime @default(now())
+  // Snapshot data user agar tetap tampil setelah akun dihapus
+  snapshotName   String?
+  snapshotEmail  String?
+  snapshotRole   String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
