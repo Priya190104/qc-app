@@ -87,7 +87,7 @@ export class FeedbackService {
         ? `${r.user.firstName} ${r.user.lastName}`.trim()
         : (r.snapshotName ?? '[Akun Dihapus]'),
       userEmail: r.user?.email ?? r.snapshotEmail ?? '',
-      userRole: r.user?.roles[0]?.role?.name ?? '',
+      userRole: r.user?.roles[0]?.role?.name ?? r.snapshotRole ?? '',
       responses: { q1: r.q1, q2: r.q2, q3: r.q3, q4: r.q4 },
       score: r.score,
       submittedAt: r.submittedAt,
