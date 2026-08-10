@@ -69,9 +69,9 @@ export class FeedbackService {
     return responses.map((r) => ({
       id: r.id,
       userId: r.userId,
-      userName: `${r.user.firstName} ${r.user.lastName}`.trim(),
-      userEmail: r.user.email,
-      userRole: r.user.roles[0]?.role?.name ?? '',
+      userName: r.user ? `${r.user.firstName} ${r.user.lastName}`.trim() : '[Akun Dihapus]',
+      userEmail: r.user?.email ?? '',
+      userRole: r.user?.roles[0]?.role?.name ?? '',
       responses: { q1: r.q1, q2: r.q2, q3: r.q3, q4: r.q4 },
       score: r.score,
       submittedAt: r.submittedAt,

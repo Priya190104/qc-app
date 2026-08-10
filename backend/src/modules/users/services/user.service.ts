@@ -168,11 +168,11 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    // Check if user has active berkas
+    // Block deletion only if user has berkas still in progress
     const berkasCount = await this.prisma.berkas.count({
       where: {
         createdById: id,
-        status: { not: BerkasStatus.SELESAI },
+        status: { notIn: [BerkasStatus.SELESAI, BerkasStatus.DITUTUP] },
       },
     });
 

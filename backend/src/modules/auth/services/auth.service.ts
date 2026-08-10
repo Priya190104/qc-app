@@ -25,19 +25,19 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Username Salah');
     }
 
     // Check if user is active
     if (!user.isActive) {
-      throw new UnauthorizedException('User account is inactive');
+      throw new UnauthorizedException('User Belum Aktif');
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Password Salah');
     }
 
     // Update last login

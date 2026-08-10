@@ -444,6 +444,27 @@ export default function AddBerkasModal({ isOpen, onClose, onSuccess }: AddBerkas
     !!formData.tahunBerkas &&
     !!formData.namaPemohon.trim();
 
+  // Reset form whenever modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        kegiatan: '',
+        tanggalBerkas: '',
+        noBerkas: '',
+        tahunBerkas: new Date().getFullYear().toString(),
+        namaPemohon: '',
+        kecamatan: '',
+        desa: '',
+        namaProsedur: '',
+        luasPendaftaran: '',
+        di302: '',
+        di305: '',
+      });
+      setError(null);
+      setTouched({});
+    }
+  }, [isOpen]);
+
   // Update filtered desa when kecamatan changes
   useEffect(() => {
     if (formData.kecamatan) {

@@ -80,7 +80,7 @@ model Berkas {
   isClosed            Boolean         @default(false)
   closedAt            DateTime?
   closedById          String?         @db.Uuid
-  createdById         String          @db.Uuid
+  createdById         String?         @db.Uuid
   approvedById        String?         @db.Uuid
   rejectedReason      String?
   createdAt           DateTime        @default(now())
@@ -115,7 +115,7 @@ model Berkas {
   lastRevisionReason  String?
   lastRevisionFrom    String?
   approvedBy          User?           @relation("approvedBy", fields: [approvedById], references: [id])
-  createdBy           User            @relation("createdBy", fields: [createdById], references: [id])
+  createdBy           User?           @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
   petugasUkur         Petugas?        @relation("petugasUkur", fields: [petugasUkurId], references: [id])
   puLapang            Petugas?        @relation("puLapang", fields: [puLapangId], references: [id])
   petugasPemetaan     Petugas?        @relation("petugasPemetaan", fields: [petugasPemetaanId], references: [id])
@@ -195,7 +195,7 @@ model BackupLog {
 
 model AuditLog {
   id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @db.Uuid
+  userId      String?  @db.Uuid
   action      String
   entity      String
   entityId    String?  @db.Uuid
@@ -206,7 +206,7 @@ model AuditLog {
   userAgent   String?
   statusCode  Int?
   createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([action])
@@ -219,14 +219,14 @@ model AuditLog {
 
 model UmuxResponse {
   id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @db.Uuid
+  userId      String?  @db.Uuid
   q1          Int      // Positif: Sistem memenuhi kebutuhan kerja (1–7)
   q2          Int      // Negatif: Merasa kesulitan (1–7)
   q3          Int      // Positif: Mudah digunakan (1–7)
   q4          Int      // Negatif: Butuh bantuan teknis (1–7)
   score       Float    // Skor UMUX 0–100 yang dihitung dari formula UMUX-Lite (1 desimal)
   submittedAt DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([submittedAt(sort: Desc)])
